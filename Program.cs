@@ -24,6 +24,8 @@ namespace job_board
             app.UseStaticFiles();
             app.UseRouting();
 
+            app.UseSwagger();
+            app.UseSwaggerUI();
 
             app.MapControllerRoute(
                 name: "default",
