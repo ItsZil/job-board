@@ -1,4 +1,8 @@
 
+using job_board.Utilities;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+
 namespace job_board
 {
     public class Program
@@ -7,9 +11,18 @@ namespace job_board
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
-
             builder.Services.AddControllersWithViews();
+            builder.Services.AddSwaggerGen();
+
+            builder.Configuration.AddEnvironmentVariables().AddJsonFile("appsettings.json");
+            var connection = builder.Configuration.GetConnectionString("AZURE_SQL_CONNECTIONSTRING");
+
+            builder.Services.AddDbContext<AppDbContext>(options =>
+                options.UseSqlServer(connection,
+                    sqlServerOptionsAction: sqlOptions =>
+                    {
+                        sqlOptions.EnableRetryOnFailure(maxRetryCount: 5, maxRetryDelay: TimeSpan.FromSeconds(5), errorNumbersToAdd: null);
+                    }));
 
             var app = builder.Build();
 

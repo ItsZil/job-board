@@ -1,4 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using job_board.Models;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Identity.Client;
 
 namespace job_board.Utilities
 {
@@ -8,5 +10,7 @@ namespace job_board.Utilities
         {
             
         }
+
+        public DbSet<Candidate> Candidates { get; set; }
     }
 }
