@@ -12,5 +12,11 @@ namespace job_board.Utilities
         }
 
         public DbSet<Candidate> Candidates { get; set; }
+        public DbSet<Employer> Employers { get; set; }
+        public DbSet<Ad> Ads { get; set; }
+
+        public DbSet<Skill> Skills { get; set; }
+        public DbSet<Education> Education { get; set; }
+        public DbSet<JobHistory> JobHistory { get; set; }   
     }
 }

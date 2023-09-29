@@ -1,11 +1,9 @@
-﻿namespace job_board.Models
+﻿namespace job_board.ViewModels.CandidateVM
 {
-    public class Education
+    public class EducationVM
     {
-        public int Id { get; set; }
         public string Institution { get; set; }
         public string Degree { get; set; }
         public DateTime GraduationDate { get; set; }
-        public Candidate Candidate { get; set; }
     }
 }

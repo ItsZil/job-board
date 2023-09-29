@@ -1,7 +1,7 @@
 
 using job_board.Utilities;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
+using System.Text.Json.Serialization;
 
 namespace job_board
 {
@@ -11,7 +11,11 @@ namespace job_board
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            builder.Services.AddControllersWithViews();
+            builder.Services.AddControllersWithViews()
+                .AddJsonOptions(options =>
+                {
+                    options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
+                });
             builder.Services.AddSwaggerGen();
 
             builder.Configuration.AddEnvironmentVariables().AddJsonFile("appsettings.json");

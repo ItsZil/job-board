@@ -1,14 +1,10 @@
-﻿using System.ComponentModel.DataAnnotations;
-
-namespace job_board.Models
+﻿namespace job_board.ViewModels.CandidateVM
 {
-    public class JobHistory
+    public class JobHistoryVM
     {
-        public int Id { get; set; }
         public string Employer { get; set; }
         public string Position { get; set; }
         public DateTime StartDate { get; set; }
         public DateTime? EndDate { get; set; }
-        public Candidate Candidate { get; set; }
     }
 }

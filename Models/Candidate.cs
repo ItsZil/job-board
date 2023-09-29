@@ -36,8 +36,8 @@ namespace job_board.Models
         public string City { get; set; }
 
         public DateTime? DateOfBirth { get; set; }
-        public ICollection<Skill> Skills { get; set; }
-        public ICollection<Education> Education { get; set; }
-        public ICollection<JobHistory> JobHistory { get; set; }
+        public ICollection<Skill> Skills { get; set; } = new List<Skill>();
+        public ICollection<Education> Education { get; set; } = new List<Education>();
+        public ICollection<JobHistory> JobHistory { get; set; } = new List<JobHistory>();
     }
 }
