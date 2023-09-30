@@ -110,5 +110,49 @@ namespace job_board.Controllers
             
             return Ok(employer);
         }
+
+        [HttpPost("GetEmployerAds")]
+        public IActionResult GetEmployerAds(int id)
+        {
+            var employer = _context.Employers.FirstOrDefault(c => c.Id == id);
+
+            if (employer == null)
+            {
+                return NotFound();
+            }
+
+            var ads = _context.Ads
+                .Where(a => a.Employer.Id == id)
+                .ToList();
+
+            return Ok(ads);
+        }
+
+        [HttpPost("UpdateEmployer")]
+        public async Task<IActionResult> UpdateEmployer([FromBody] EmployerUpdateVM employerData)
+        {
+            int userId = 1; // TODO: get from auth
+            var employer = _context.Employers.FirstOrDefault(e => e.Id == userId);
+
+            if (employer == null)
+            {
+                return NotFound();
+            }
+
+            if (false) // TODO: employer.Id != userId
+            {
+                return Unauthorized();
+            }
+
+            employer.Company = employerData.Company;
+            employer.CompanyDescription = employerData.CompanyDescription;
+            employer.Industry = employerData.Industry;
+            employer.Website = employerData.Website;
+
+            _context.Employers.Update(employer);
+            await _context.SaveChangesAsync();
+
+            return Ok();
+        }
     }
 }

@@ -110,7 +110,7 @@ namespace job_board.Controllers
                     Skills = a.Candidate.Skills,
                     JobHistory = a.Candidate.JobHistory,
                     Education = a.Candidate.Education
-                }
+                },
                 CoverLetter = a.CoverLetter,
                 ApplicationDate = a.ApplicationDate,
             }).ToList();
