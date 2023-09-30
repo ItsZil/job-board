@@ -1,10 +1,13 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace job_board.Models
 {
     public class Candidate
     {
         [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
 
         [Required]
@@ -13,10 +16,12 @@ namespace job_board.Models
 
         [Required]
         [StringLength(100)]
+        [JsonIgnore]
         public string Password { get; set; }
 
         [Required]
         [StringLength(100)]
+        [JsonIgnore]
         public string Salt { get; set; }
 
         [Required]

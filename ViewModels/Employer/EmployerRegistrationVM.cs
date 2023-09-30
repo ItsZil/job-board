@@ -1,28 +1,16 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Text.Json.Serialization;
 
-namespace job_board.Models
+namespace job_board.ViewModels.Employer
 {
-    public class Employer
+    public class EmployerRegistrationVM
     {
-        [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int Id { get; set; }
-
         [Required]
-        [StringLength(100)]
+        [EmailAddress]
         public string Email { get; set; }
 
         [Required]
-        [StringLength(100)]
-        [JsonIgnore]
+        [DataType(DataType.Password)]
         public string Password { get; set; }
-
-        [Required]
-        [StringLength(100)]
-        [JsonIgnore]
-        public string Salt { get; set; }
 
         [Required]
         [StringLength(100)]

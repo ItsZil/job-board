@@ -1,15 +1,12 @@
-﻿using System;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.ComponentModel.DataAnnotations;
 
-namespace job_board.Models
+namespace job_board.ViewModels.Ad
 {
-    public class Ad
+    public class AdUpdateVM
     {
         [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
-
+        
         [Required]
         [StringLength(255)]
         public string Title { get; set; }
@@ -29,9 +26,5 @@ namespace job_board.Models
         public string Location { get; set; }
 
         public DateTime PostedDate { get; set; } = DateTime.Now;
-
-        [Required]
-        [ForeignKey("EmployerId")]
-        public Employer Employer { get; set; }
     }
 }

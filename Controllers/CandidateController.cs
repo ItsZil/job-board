@@ -1,6 +1,7 @@
 ﻿using job_board.Models;
 using job_board.Utilities;
 using job_board.ViewModels;
+using job_board.ViewModels.Candidate;
 using job_board.ViewModels.CandidateVM;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -90,6 +91,7 @@ namespace job_board.Controllers
                 .Include(c => c.Skills)
                 .Include(c => c.Education)
                 .Include(c => c.JobHistory)
+                .AsSplitQuery()
                 .ToList();
             if (candidates == null)
             {
@@ -107,11 +109,48 @@ namespace job_board.Controllers
                 .Include(c => c.JobHistory)
                 .AsSplitQuery()
                 .FirstOrDefault(c => c.Id == id);
+            
             if (candidate == null)
             {
                 return NotFound();
             }
             return Ok(candidate);
+        }
+
+        [HttpGet("GetCandidateApplications")]
+        public IActionResult GetCandidateApplications(int id)
+        {
+            var candidate = _context.Candidates.FirstOrDefault(c => c.Id == id);
+
+            if (candidate == null)
+            {
+                return NotFound();
+            }
+
+            int userId = 1; // TODO: get from auth
+            if (false) // userId != id
+            {
+                return Unauthorized();
+            }
+
+            var applicationsResponse = _context.Applications
+                .Include(a => a.Ad)
+                    .ThenInclude(ad => ad.Employer)
+                .Where(app => app.Candidate.Id == id)
+                .Select(app => new Application
+                {
+                    Id = app.Id,
+                    Ad = new Ad
+                    {
+                        Id = app.Ad.Id,
+                        Title = app.Ad.Title,
+                        Employer = new Employer { Company = app.Ad.Employer.Company }
+                    },
+                    ApplicationDate = app.ApplicationDate
+                })
+                .ToList();
+
+            return Ok(applicationsResponse);
         }
 
         [HttpPost("SaveCandidateSkills")]
@@ -125,7 +164,7 @@ namespace job_board.Controllers
 
             if (candidate == null)
             {
-                return NotFound();
+                return Unauthorized("Not logged in!");
             }
 
             try
@@ -156,7 +195,7 @@ namespace job_board.Controllers
 
             if (candidate == null)
             {
-                return NotFound();
+                return Unauthorized("Not logged in!");
             }
 
             try
@@ -202,6 +241,42 @@ namespace job_board.Controllers
                 }
                 await _context.SaveChangesAsync();
                 return Ok("Job history saved successfully.");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
+        [HttpPost("CandidateApplyToAd")]
+        public async Task<IActionResult> CandidateApplyToAd([FromBody] CandidateApplyToAdVM candidateApp)
+        {
+            int candidateId = 1; // TODO: retrieve from auth
+            var candidate = _context.Candidates.FirstOrDefault(c => c.Id == candidateId);
+            
+            if (candidate == null)
+            {
+                return Unauthorized("Not logged in!");
+            }
+
+            var ad = _context.Ads
+                .FirstOrDefault(a => a.Id == candidateApp.AdId);
+            if (ad == null)
+            {
+                return BadRequest();
+            }
+
+            var candidateApplication = new Application
+            {
+                Candidate = candidate,
+                Ad = ad,
+                CoverLetter = candidateApp.CoverLetter
+            };
+            try
+            {
+                _context.Applications.Add(candidateApplication);
+                await _context.SaveChangesAsync();
+                return Ok("Application to ad saved.");
             }
             catch (Exception ex)
             {
