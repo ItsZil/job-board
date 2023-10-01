@@ -27,8 +27,5 @@ namespace job_board.ViewModels.Ad
         public string Location { get; set; }
         
         public DateTime PostedDate { get; set; } = DateTime.Now;
-
-        [Required]
-        public Models.Employer Employer { get; set; }
     }
 }
