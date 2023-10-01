@@ -1,13 +1,9 @@
-﻿using job_board.Models;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace job_board.ViewModels.Ad
 {
     public class AdCreateVM
     {
-        [Key]
-        public int Id { get; set; }
-        
         [Required]
         [StringLength(255)]
         public string Title { get; set; }
@@ -25,7 +21,5 @@ namespace job_board.ViewModels.Ad
         [Required]
         [StringLength(100)]
         public string Location { get; set; }
-        
-        public DateTime PostedDate { get; set; } = DateTime.Now;
     }
 }

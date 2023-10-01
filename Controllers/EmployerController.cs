@@ -70,6 +70,7 @@ namespace job_board.Controllers
         }
 
         [HttpGet("GetAllEmployers")]
+        [Authorize(Roles = "Employer")]
         public IActionResult GetAllEmployers()
         {
             var employers = _context.Employers
