@@ -23,7 +23,7 @@ namespace job_board
                 });
             builder.Services.AddSwaggerGen();
 
-            builder.Configuration.AddEnvironmentVariables().AddJsonFile("appsettings.json");
+            builder.Configuration.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
             var connection = builder.Configuration.GetConnectionString("AZURE_SQL_CONNECTIONSTRING");
 
             builder.Services.AddDbContext<AppDbContext>(options =>
@@ -32,10 +32,6 @@ namespace job_board
                     {
                         sqlOptions.EnableRetryOnFailure(maxRetryCount: 5, maxRetryDelay: TimeSpan.FromSeconds(5), errorNumbersToAdd: null);
                     }));
-
-            // Access the JWT values under appsettings.json
-            var jwtSettings = builder.Configuration.GetSection("JWT");
-            var audience = jwtSettings["Audience"];
 
             builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
@@ -46,9 +42,9 @@ namespace job_board
                         ValidateAudience = true,
                         ValidateLifetime = true,
                         ValidateIssuerSigningKey = true,
-                        ValidIssuer = jwtSettings["Issuer"],
-                        ValidAudience = jwtSettings["Audience"],
-                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["Key"]))
+                        ValidIssuer = builder.Configuration["Jwt_Issuer"],
+                        ValidAudience = builder.Configuration["Jwt_Audience"],
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt_Key"]))
                     };
                 });
 
