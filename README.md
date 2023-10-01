@@ -43,3 +43,16 @@ Sistema sudaryta iš dvejų dalių:
 Žemiau pateiktame paveikslėlyje pavaizduota sistemos diegimo diagrama. Naudotojas, pasileidęs naršyklę, galės HTTP protokolu pasiekti sistemą talpinamą Azure serveryje. Sistemos veikimui naudojamas API, kuris vykdo duomenų mainus su duomenų bazę per ORM.
 
 ![Diegimo diagrama](https://github.com/ItsZil/job-board/assets/22817405/eec7db9d-ac67-4dec-a6a2-7edaabde4ddc)
+
+# 2. Sistemos implementacija
+
+# 2.1 Sistemos struktūra
+
+Serverio pusė sudaryta iš šių kontrolerių:
+- AdController - atsakingas už darbo skelbimų CRUD ir kitas operacijas;
+- CandidateController - atsakingas už darbo ieškotojų CRUD ir kitas operacijas;
+- EmployerController - atsakingas už darbdavių CRUD ir kitas operacijas;
+
+Autorizacijai ir autentifikacijai naudojama JWT (JSON Web Token) technologija. Kliento pusėje saugomi duomenys apie prisijungusį naudotoją, kurie naudojami atliekant užklausas į API.
+Darbo ieškotojas ir darbdavys turi skirtingą rolę, kuri saugojama JWT žetone. Ne visos sistemos operacijos yra leidžiamos darbo ieškotojui ir darbdaviui. 
+Pavyzdžiui, darbdavys negali pretenduoti į darbo skelbimus, o darbo ieškotojas negali kurti darbo skelbimų.
