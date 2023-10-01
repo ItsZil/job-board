@@ -4,8 +4,6 @@ using job_board.ViewModels;
 using job_board.ViewModels.Employer;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Cryptography;
-using System.Text;
 
 namespace job_board.Controllers
 {
@@ -25,16 +23,7 @@ namespace job_board.Controllers
         [HttpPost("RegisterEmployer")]
         public async Task<IActionResult> RegisterEmployer([FromBody] EmployerRegistrationVM registrationData)
         {
-            byte[] passwordPlain = Encoding.UTF8.GetBytes(registrationData.Password);
-            byte[] passwordSalt = RandomNumberGenerator.GetBytes(32);
-
-            string saltString, passwordHashString;
-            using (var pbkdf2 = new Rfc2898DeriveBytes(passwordPlain, passwordSalt, 10000, HashAlgorithmName.SHA512))
-            {
-                byte[] hash = pbkdf2.GetBytes(32);
-                saltString = Convert.ToBase64String(passwordSalt);
-                passwordHashString = Convert.ToBase64String(hash);
-            }
+            var hashedPasswordAndSalt = AuthHelper.HashPassword(registrationData.Password);
 
             var employer = new Employer
             {
@@ -43,15 +32,17 @@ namespace job_board.Controllers
                 CompanyDescription = registrationData.CompanyDescription,
                 Industry = registrationData.Industry,
                 Website = registrationData.Website,
-                Salt = saltString,
-                Password = passwordHashString
+                Salt = hashedPasswordAndSalt.salt,
+                Password = hashedPasswordAndSalt.hashedPassword
             };
 
             try
             {
                 _context.Employers.Add(employer);
                 await _context.SaveChangesAsync();
-                return Ok();
+
+                var token = AuthHelper.GenerateJwtToken(employer.Id, "Employer");
+                return Ok(new { Token = token });
             }
             catch (Exception ex)
             {
@@ -68,16 +59,9 @@ namespace job_board.Controllers
                 return NotFound("Account not found.");
             }
 
-            byte[] passwordPlain = Encoding.UTF8.GetBytes(loginData.Password);
-            byte[] passwordSalt = Convert.FromBase64String(employer.Salt);
-
-            using (var rfc2898DeriveBytes = new Rfc2898DeriveBytes(passwordPlain, passwordSalt, 10000, HashAlgorithmName.SHA512))
+            if (AuthHelper.DoesPasswordMatch(loginData.Password, employer.Salt, employer.Password))
             {
-                byte[] computedHash = rfc2898DeriveBytes.GetBytes(32);
-                if (computedHash.SequenceEqual(Convert.FromBase64String(employer.Password)))
-                {
-                    return Ok("Authentication successful.");
-                }
+                return Ok("Authentication successful.");
             }
             return Unauthorized("Invalid password.");
         }

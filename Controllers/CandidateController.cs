@@ -3,10 +3,10 @@ using job_board.Utilities;
 using job_board.ViewModels;
 using job_board.ViewModels.Candidate;
 using job_board.ViewModels.CandidateVM;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Cryptography;
-using System.Text;
+using System.Security.Claims;
 
 namespace job_board.Controllers
 {
@@ -24,18 +24,9 @@ namespace job_board.Controllers
         }
 
         [HttpPost("RegisterCandidate")]
-        public async Task<IActionResult> RegistrateCandidate([FromBody] CandidateRegistrationVM registrationData)
+        public async Task<IActionResult> RegisterCandidate([FromBody] CandidateRegistrationVM registrationData)
         {
-            byte[] passwordPlain = Encoding.UTF8.GetBytes(registrationData.Password);
-            byte[] passwordSalt = RandomNumberGenerator.GetBytes(32);
-
-            string saltString, passwordHashString;
-            using (var pbkdf2 = new Rfc2898DeriveBytes(passwordPlain, passwordSalt, 10000, HashAlgorithmName.SHA512))
-            {
-                byte[] hash = pbkdf2.GetBytes(32);
-                saltString = Convert.ToBase64String(passwordSalt);
-                passwordHashString = Convert.ToBase64String(hash);
-            }
+            var hashedPasswordAndSalt = AuthHelper.HashPassword(registrationData.Password);
 
             var candidate = new Candidate
             {
@@ -45,15 +36,18 @@ namespace job_board.Controllers
                 Phone = registrationData.Phone,
                 City = registrationData.City,
                 DateOfBirth = registrationData.DateOfBirth != null ? registrationData.DateOfBirth : (DateTime?)null,
-                Salt = saltString,
-                Password = passwordHashString
+                Salt = hashedPasswordAndSalt.salt,
+                Password = hashedPasswordAndSalt.hashedPassword
             };
 
             try
             {
                 _context.Candidates.Add(candidate);
                 await _context.SaveChangesAsync();
-                return Ok();
+
+                var token = AuthHelper.GenerateJwtToken(candidate.Id, "Candidate");
+                
+                return Ok(new { Token = token });
             }
             catch (Exception ex)
             {
@@ -70,16 +64,10 @@ namespace job_board.Controllers
                 return NotFound("Account not found.");
             }
 
-            byte[] passwordPlain = Encoding.UTF8.GetBytes(loginData.Password);
-            byte[] passwordSalt = Convert.FromBase64String(candidate.Salt);
-
-            using (var rfc2898DeriveBytes = new Rfc2898DeriveBytes(passwordPlain, passwordSalt, 10000, HashAlgorithmName.SHA512))
+            if (AuthHelper.DoesPasswordMatch(loginData.Password, candidate.Salt, candidate.Password))
             {
-                byte[] computedHash = rfc2898DeriveBytes.GetBytes(32);
-                if (computedHash.SequenceEqual(Convert.FromBase64String(candidate.Password)))
-                {
-                    return Ok("Authentication successful.");
-                }
+                var token = AuthHelper.GenerateJwtToken(candidate.Id, "Candidate");
+                return Ok(new { Token = token });
             }
             return Unauthorized("Invalid password.");
         }
@@ -118,6 +106,7 @@ namespace job_board.Controllers
         }
 
         [HttpGet("GetCandidateApplications")]
+        [Authorize(Roles = "Candidate")]
         public IActionResult GetCandidateApplications(int id)
         {
             var candidate = _context.Candidates.FirstOrDefault(c => c.Id == id);
@@ -127,8 +116,8 @@ namespace job_board.Controllers
                 return NotFound();
             }
 
-            int userId = 1; // TODO: get from auth
-            if (false) // userId != id
+            var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
+            if (userIdClaim == null || int.Parse(userIdClaim.Value) != id)
             {
                 return Unauthorized();
             }
@@ -154,17 +143,23 @@ namespace job_board.Controllers
         }
 
         [HttpPost("SaveCandidateSkills")]
+        [Authorize(Roles = "Candidate")]
         public async Task<IActionResult> SaveCandidateSkills([FromBody] CandidateSaveSkillsVM saveSkills)
         {
-            int id = 1; // TODO: retrieve from auth
+            var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
+            if (userIdClaim == null || int.TryParse(userIdClaim.Value, out int userId) == false)
+            {
+                return Unauthorized();
+            }
+            
             var candidate = await _context.Candidates
                 .Include(c => c.Skills)
                 .AsSplitQuery()
-                .FirstOrDefaultAsync(c => c.Id == id);
-
+                .FirstOrDefaultAsync(c => c.Id == userId);
+            
             if (candidate == null)
             {
-                return Unauthorized("Not logged in!");
+                return NotFound("Failed to find user!");
             }
 
             try
@@ -186,16 +181,22 @@ namespace job_board.Controllers
         }
 
         [HttpPost("SaveCandidateEducation")]
+        [Authorize(Roles = "Candidate")]
         public async Task<IActionResult> SaveCandidateEducation([FromBody] CandidateSaveEducationVM saveEducation)
         {
-            int id = 1; // TODO: retrieve from auth
+            var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
+            if (userIdClaim == null || int.TryParse(userIdClaim.Value, out int userId) == false)
+            {
+                return Unauthorized();
+            }
+            
             var candidate = await _context.Candidates
                 .Include(c => c.Skills)
-                .FirstOrDefaultAsync(c => c.Id == id);
+                .FirstOrDefaultAsync(c => c.Id == userId);
 
             if (candidate == null)
             {
-                return Unauthorized("Not logged in!");
+                return NotFound("Failed to find user!");
             }
 
             try
@@ -217,16 +218,22 @@ namespace job_board.Controllers
         }
 
         [HttpPost("SaveCandidateJobHistory")]
+        [Authorize(Roles = "Candidate")]
         public async Task<IActionResult> SaveCandidateJobHistory([FromBody] CandidateSaveJobHistoryVM saveJobHistory)
         {
-            int id = 1; // TODO: retrieve from auth
+            var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
+            if (userIdClaim == null || int.TryParse(userIdClaim.Value, out int userId) == false)
+            {
+                return Unauthorized();
+            }
+            
             var candidate = await _context.Candidates
                 .Include(c => c.Skills)
-                .FirstOrDefaultAsync(c => c.Id == id);
+                .FirstOrDefaultAsync(c => c.Id == userId);
 
             if (candidate == null)
             {
-                return NotFound();
+                return NotFound("Failed to find user!");
             }
 
             try
@@ -249,14 +256,20 @@ namespace job_board.Controllers
         }
 
         [HttpPost("CandidateApplyToAd")]
+        [Authorize(Roles = "Candidate")]
         public async Task<IActionResult> CandidateApplyToAd([FromBody] CandidateApplyToAdVM candidateApp)
         {
-            int candidateId = 1; // TODO: retrieve from auth
+            var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
+            if (userIdClaim == null || int.TryParse(userIdClaim.Value, out int candidateId) == false)
+            {
+                return Unauthorized();
+            }
+            
             var candidate = _context.Candidates.FirstOrDefault(c => c.Id == candidateId);
             
             if (candidate == null)
             {
-                return Unauthorized("Not logged in!");
+                return NotFound("Failed to find user!");
             }
 
             var ad = _context.Ads
