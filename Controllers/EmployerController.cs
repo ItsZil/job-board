@@ -2,8 +2,10 @@
 using job_board.Utilities;
 using job_board.ViewModels;
 using job_board.ViewModels.Employer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace job_board.Controllers
 {
@@ -61,7 +63,8 @@ namespace job_board.Controllers
 
             if (AuthHelper.DoesPasswordMatch(loginData.Password, employer.Salt, employer.Password))
             {
-                return Ok("Authentication successful.");
+                var token = AuthHelper.GenerateJwtToken(employer.Id, "Employer");
+                return Ok(new { Token = token });
             }
             return Unauthorized("Invalid password.");
         }
@@ -113,9 +116,14 @@ namespace job_board.Controllers
         }
 
         [HttpPost("UpdateEmployer")]
+        [Authorize(Roles = "Employer")]
         public async Task<IActionResult> UpdateEmployer([FromBody] EmployerUpdateVM employerData)
         {
-            int userId = 1; // TODO: get from auth
+            int userId = AuthHelper.GetUserId(User);
+            if (userId == 0)
+            {
+                return Unauthorized();
+            }
             var employer = _context.Employers.FirstOrDefault(e => e.Id == userId);
 
             if (employer == null)
@@ -123,7 +131,7 @@ namespace job_board.Controllers
                 return NotFound();
             }
 
-            if (false) // TODO: employer.Id != userId
+            if (employer.Id != userId)
             {
                 return Unauthorized();
             }

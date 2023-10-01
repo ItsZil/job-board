@@ -45,7 +45,8 @@ namespace job_board.Controllers
                 _context.Candidates.Add(candidate);
                 await _context.SaveChangesAsync();
 
-                var token = AuthHelper.GenerateJwtToken(candidate.Id, "Candidate");
+                int candidateId = await _context.Candidates.Where(c => c.Email == registrationData.Email).Select(c => c.Id).FirstOrDefaultAsync();
+                var token = AuthHelper.GenerateJwtToken(candidateId, "Candidate");
                 
                 return Ok(new { Token = token });
             }
@@ -109,17 +110,16 @@ namespace job_board.Controllers
         [Authorize(Roles = "Candidate")]
         public IActionResult GetCandidateApplications(int id)
         {
+            int userId = AuthHelper.GetUserId(User);
+            if (userId != id)
+            {
+                return Unauthorized();
+            }
+            
             var candidate = _context.Candidates.FirstOrDefault(c => c.Id == id);
-
             if (candidate == null)
             {
                 return NotFound();
-            }
-
-            var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
-            if (userIdClaim == null || int.Parse(userIdClaim.Value) != id)
-            {
-                return Unauthorized();
             }
 
             var applicationsResponse = _context.Applications
@@ -146,8 +146,8 @@ namespace job_board.Controllers
         [Authorize(Roles = "Candidate")]
         public async Task<IActionResult> SaveCandidateSkills([FromBody] CandidateSaveSkillsVM saveSkills)
         {
-            var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
-            if (userIdClaim == null || int.TryParse(userIdClaim.Value, out int userId) == false)
+            int userId = AuthHelper.GetUserId(User);
+            if (userId == 0)
             {
                 return Unauthorized();
             }
@@ -184,8 +184,8 @@ namespace job_board.Controllers
         [Authorize(Roles = "Candidate")]
         public async Task<IActionResult> SaveCandidateEducation([FromBody] CandidateSaveEducationVM saveEducation)
         {
-            var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
-            if (userIdClaim == null || int.TryParse(userIdClaim.Value, out int userId) == false)
+            int userId = AuthHelper.GetUserId(User);
+            if (userId == 0)
             {
                 return Unauthorized();
             }
@@ -205,7 +205,7 @@ namespace job_board.Controllers
                 {
                     if (!candidate.Education.Any(e => e.Institution == education.Institution && e.Degree == education.Degree && e.GraduationDate == education.GraduationDate))
                     {
-                        candidate.Education.Add(new Education { Institution = education.Institution, Degree = education.Degree, GraduationDate = education.GraduationDate, Candidate = candidate });
+                        candidate.Education.Add(new Education { Institution = education.Institution, Degree = education.Degree, GraduationDate = education.GraduationDate });
                     }
                 }
                 await _context.SaveChangesAsync();
@@ -221,12 +221,12 @@ namespace job_board.Controllers
         [Authorize(Roles = "Candidate")]
         public async Task<IActionResult> SaveCandidateJobHistory([FromBody] CandidateSaveJobHistoryVM saveJobHistory)
         {
-            var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
-            if (userIdClaim == null || int.TryParse(userIdClaim.Value, out int userId) == false)
+            int userId = AuthHelper.GetUserId(User);
+            if (userId == 0)
             {
                 return Unauthorized();
             }
-            
+
             var candidate = await _context.Candidates
                 .Include(c => c.Skills)
                 .FirstOrDefaultAsync(c => c.Id == userId);
@@ -243,7 +243,7 @@ namespace job_board.Controllers
                     if (!candidate.JobHistory.Any(j => j.Employer == jobHistory.Employer && j.Position == jobHistory.Position
                         && j.StartDate == jobHistory.StartDate && j.EndDate == jobHistory.EndDate || (jobHistory.EndDate == null && j.EndDate == null)))
                     {
-                        candidate.JobHistory.Add(new JobHistory { Employer = jobHistory.Employer, Position = jobHistory.Position, StartDate = jobHistory.StartDate, EndDate = jobHistory.EndDate, Candidate = candidate });
+                        candidate.JobHistory.Add(new JobHistory { Employer = jobHistory.Employer, Position = jobHistory.Position, StartDate = jobHistory.StartDate, EndDate = jobHistory.EndDate });
                     }
                 }
                 await _context.SaveChangesAsync();
@@ -259,13 +259,13 @@ namespace job_board.Controllers
         [Authorize(Roles = "Candidate")]
         public async Task<IActionResult> CandidateApplyToAd([FromBody] CandidateApplyToAdVM candidateApp)
         {
-            var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
-            if (userIdClaim == null || int.TryParse(userIdClaim.Value, out int candidateId) == false)
+            int userId = AuthHelper.GetUserId(User);
+            if (userId == 0)
             {
                 return Unauthorized();
             }
-            
-            var candidate = _context.Candidates.FirstOrDefault(c => c.Id == candidateId);
+
+            var candidate = _context.Candidates.FirstOrDefault(c => c.Id == userId);
             
             if (candidate == null)
             {

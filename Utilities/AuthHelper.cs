@@ -1,4 +1,5 @@
-﻿using Microsoft.IdentityModel.Tokens;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
@@ -39,8 +40,8 @@ namespace job_board.Utilities
 
         public static string GenerateJwtToken(int userId, string role)
         {
-            var jwtSettings = Program.App.Configuration.GetSection("JWT");
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["Key"]));
+            var jwtKey = Program.App.Configuration.GetValue<string>("Jwt_Key");
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
 
             var claims = new[]
             {
@@ -51,6 +52,7 @@ namespace job_board.Utilities
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(claims),
+                Issuer = Program.App.Configuration.GetValue<string>("Jwt_Issuer"),
                 Audience = "JobBoard",
                 Expires = DateTime.UtcNow.AddHours(2),
                 SigningCredentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha512)
@@ -59,6 +61,16 @@ namespace job_board.Utilities
             var tokenHandler = new JwtSecurityTokenHandler();
             var token = tokenHandler.CreateToken(tokenDescriptor);
             return tokenHandler.WriteToken(token);
+        }
+
+        public static int GetUserId(ClaimsPrincipal user)
+        {
+            var userIdClaim = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
+            if (userIdClaim == null || int.TryParse(userIdClaim.Value, out int userId) == false)
+            {
+                return 0;
+            }
+            return userId;
         }
     }
 }

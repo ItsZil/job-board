@@ -1,8 +1,10 @@
 ﻿using job_board.Models;
 using job_board.Utilities;
 using job_board.ViewModels.Ad;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 using System.Xml.Linq;
 
 namespace job_board.Controllers
@@ -21,11 +23,16 @@ namespace job_board.Controllers
         }
 
         [HttpPost("CreateAd")]
+        [Authorize(Roles = "Employer")]
         public async Task<IActionResult> CreateAd([FromBody] AdCreateVM adData)
         {
-            int employerId = 1; // TODO: get employer id from auth
-            var employer = _context.Employers.Find(employerId);
-            if (employer == null) // todo: or not authenticated?
+            int userId = AuthHelper.GetUserId(User);
+            if (userId == 0)
+            {
+                return Unauthorized();
+            }
+            var employer = _context.Employers.Find(userId);
+            if (employer == null)
             {
                 return Unauthorized();
             }
@@ -74,6 +81,7 @@ namespace job_board.Controllers
         }
 
         [HttpGet("GetAdApplicants")]
+        [Authorize(Roles = "Employer")]
         public IActionResult GetAdApplicants(int id)
         {
             var ad = _context.Ads
@@ -85,15 +93,21 @@ namespace job_board.Controllers
                 return NotFound();
             }
 
-            int userId = 1; // TODO: get user id from auth
-            if (false) // ad.Employer.Id != userId
+            int userId = AuthHelper.GetUserId(User);
+            if (userId == 0 || ad.Employer.Id != userId)
             {
                 return Unauthorized();
             }
 
             var applications = _context.Applications
                 .Include(a => a.Candidate)
+                    .ThenInclude(s => s.Skills)
+                .Include(a => a.Candidate)
+                    .ThenInclude(c => c.JobHistory)
+                .Include(a => a.Candidate)
+                    .ThenInclude(c => c.Education)
                 .Where(a => a.Ad.Id == id)
+                .AsSplitQuery()
                 .ToList();
 
             var adApplications = applications.Select(a => new
@@ -119,6 +133,7 @@ namespace job_board.Controllers
         }
 
         [HttpPost("UpdateAd")]
+        [Authorize(Roles = "Employer")]
         public async Task<IActionResult> UpdateAd([FromBody] AdUpdateVM adData)
         {
             var ad = await _context.Ads
@@ -129,8 +144,8 @@ namespace job_board.Controllers
                 return NotFound();
             }
 
-            int userId = 1; // todo: get from auth
-            if (false) // ad.Employer.Id != userId
+            int userId = AuthHelper.GetUserId(User);
+            if (userId == 0 || ad.Employer.Id != userId)
             {
                 return Unauthorized();
             }
@@ -147,6 +162,7 @@ namespace job_board.Controllers
         }
 
         [HttpPost("DeleteAd")]
+        [Authorize(Roles = "Employer")]
         public async Task<IActionResult> DeleteAd(int id)
         {
             var ad = await _context.Ads
@@ -157,8 +173,8 @@ namespace job_board.Controllers
                 return NotFound();
             }
 
-            int userId = 8; // todo: get from auth
-            if (false) // ad.Employer.Id != userId
+            int userId = AuthHelper.GetUserId(User);
+            if (userId == 0 || ad.Employer.Id != userId)
             {
                 return Unauthorized();
             }
