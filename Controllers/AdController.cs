@@ -4,8 +4,6 @@ using job_board.ViewModels.Ad;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Claims;
-using System.Xml.Linq;
 
 namespace job_board.Controllers
 {
@@ -24,37 +22,7 @@ namespace job_board.Controllers
             _dbHelper = dbHelper;
         }
 
-        /*
-        [HttpPost("CreateAd")]
-        [Authorize(Roles = "Employer")]
-        public async Task<IActionResult> CreateAd([FromBody] AdCreateVM adData)
-        {
-            int userId = AuthHelper.GetUserId(User);
-            if (userId == 0)
-            {
-                return Unauthorized();
-            }
-            var employer = _context.Employers.Find(userId);
-            if (employer == null)
-            {
-                return Unauthorized();
-            }
-
-            var ad = new Ad
-            {
-                Title = adData.Title,
-                Description = adData.Description,
-                SalaryFrom = adData.SalaryFrom,
-                SalaryTo = adData.SalaryTo,
-                Location = adData.Location,
-                PostedDate = DateTime.Now,
-                Employer = employer
-            };
-            _context.Ads.Add(ad);
-            await _context.SaveChangesAsync();
-            return Ok();
-        }*/
-
+        // GET: api/companies/{companyId}/ads
         [HttpGet]
         public IActionResult GetAllAds(int companyId)
         {
@@ -85,6 +53,11 @@ namespace job_board.Controllers
                 return NotFound("Company not found.");
             }
 
+            if (!_dbHelper.DoesAdExist(adId))
+            {
+                return NotFound("Ad not found.");
+            }
+
             var ad = _context.Ads
                 .Include(a => a.Company)
                 .Where(a => a.Company.Id == companyId)
@@ -98,75 +71,61 @@ namespace job_board.Controllers
             return Ok(ad);
         }
 
-        /*
-        [HttpGet("GetAdApplicants")]
-        [Authorize(Roles = "Employer")]
-        public IActionResult GetAdApplicants(int id)
-        {
-            var ad = _context.Ads
-                .Include(a => a.Employer)
-                .FirstOrDefault(a => a.Id == id);
-            
-            if (ad == null)
+        // POST: api/companies/{companyId}/ads
+        [HttpPost]
+        [Authorize(Roles = "company,admin")]
+        public async Task<IActionResult> CreateAd(int companyId, [FromBody] AdCreateVM adData)
+        {            
+            var company = _context.Companies.Find(companyId);
+            if (company == null)
             {
-                return NotFound();
+                return NotFound("Company not found.");
             }
 
             int userId = AuthHelper.GetUserId(User);
-            if (userId == 0 || ad.Employer.Id != userId)
+            if (company.Id != userId && !User.IsInRole("admin"))
             {
-                return Unauthorized();
+                return Forbid();
             }
 
-            var applications = _context.Applications
-                .Include(a => a.Candidate)
-                    .ThenInclude(s => s.Skills)
-                .Include(a => a.Candidate)
-                    .ThenInclude(c => c.JobHistory)
-                .Include(a => a.Candidate)
-                    .ThenInclude(c => c.Education)
-                .Where(a => a.Ad.Id == id)
-                .AsSplitQuery()
-                .ToList();
-
-            var adApplications = applications.Select(a => new
+            var ad = new Ad
             {
-                Id = a.Id,
-                Candidate = new
-                {
-                    Id = a.Candidate.Id,
-                    Email = a.Candidate.Email,
-                    FirstName = a.Candidate.FirstName,
-                    LastName = a.Candidate.LastName,
-                    Phone = a.Candidate.Phone,
-                    City = a.Candidate.City,
-                    Skills = a.Candidate.Skills,
-                    JobHistory = a.Candidate.JobHistory,
-                    Education = a.Candidate.Education
-                },
-                CoverLetter = a.CoverLetter,
-                ApplicationDate = a.ApplicationDate,
-            }).ToList();
-
-            return Ok(adApplications);
+                Title = adData.Title,
+                Description = adData.Description,
+                SalaryFrom = adData.SalaryFrom,
+                SalaryTo = adData.SalaryTo,
+                Location = adData.Location,
+                PostedDate = DateTime.Now,
+                Company = company
+            };
+            _context.Ads.Add(ad);
+            await _context.SaveChangesAsync();
+            
+            return Created(string.Empty, ad);
         }
 
-        [HttpPost("UpdateAd")]
-        [Authorize(Roles = "Employer")]
-        public async Task<IActionResult> UpdateAd([FromBody] AdUpdateVM adData)
+        // PUT: api/companies/{companyId}/ads/{adId}
+        [HttpPut]
+        [Authorize(Roles = "company,admin")]
+        public async Task<IActionResult> UpdateAd(int companyId, int adId, [FromBody] AdUpdateVM adData)
         {
+            if (!_dbHelper.DoesCompanyExist(companyId))
+            {
+                return NotFound("Company not found.");
+            }
+            
             var ad = await _context.Ads
-                .Include(e => e.Employer)
-                .FirstOrDefaultAsync(a => a.Id == adData.Id);
+                .Include(e => e.Company)
+                .FirstOrDefaultAsync(a => a.Id == adId && a.Company.Id == companyId);
             if (ad == null)
             {
-                return NotFound();
+                return NotFound("Ad not found.");
             }
 
             int userId = AuthHelper.GetUserId(User);
-            if (userId == 0 || ad.Employer.Id != userId)
+            if (ad.Company.Id != userId && !User.IsInRole("admin"))
             {
-                return Unauthorized();
+                return Forbid();
             }
 
             ad.Title = adData.Title;
@@ -177,30 +136,36 @@ namespace job_board.Controllers
             ad.PostedDate = DateTime.Now;
 
             await _context.SaveChangesAsync();
-            return Ok();
+            return Created(string.Empty, ad);
         }
 
-        [HttpPost("DeleteAd")]
-        [Authorize(Roles = "Employer")]
-        public async Task<IActionResult> DeleteAd(int id)
+        // DELETE: api/companies/{companyId}/ads/{adId}
+        [HttpDelete]
+        [Authorize(Roles = "admin,company")]
+        public async Task<IActionResult> DeleteAd(int companyId, int adId)
         {
+            if (!_dbHelper.DoesCompanyExist(companyId))
+            {
+                return NotFound("Company not found.");
+            }
+            
             var ad = await _context.Ads
-                .Include(e => e.Employer)
-                .FirstOrDefaultAsync(a => a.Id == id);
+                .Include(e => e.Company)
+                .FirstOrDefaultAsync(a => a.Id == adId && a.Company.Id == companyId);
             if (ad == null)
             {
                 return NotFound();
             }
 
             int userId = AuthHelper.GetUserId(User);
-            if (userId == 0 || ad.Employer.Id != userId)
+            if (ad.Company.Id != userId && !User.IsInRole("admin"))
             {
-                return Unauthorized();
+                return Forbid();
             }
 
             _context.Ads.Remove(ad);
             await _context.SaveChangesAsync();
-            return Ok();
-        }*/
+            return Ok("Ad deleted successfully.");
+        }
     }
 }

@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace job_board.ViewModels.CandidateVM
+namespace job_board.ViewModels
 {
     public class CandidateRegistrationVM
     {

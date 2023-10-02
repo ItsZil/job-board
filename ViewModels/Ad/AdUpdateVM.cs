@@ -3,10 +3,7 @@
 namespace job_board.ViewModels.Ad
 {
     public class AdUpdateVM
-    {
-        [Key]
-        public int Id { get; set; }
-        
+    {   
         [Required]
         [StringLength(255)]
         public string Title { get; set; }

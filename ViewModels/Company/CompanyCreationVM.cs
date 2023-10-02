@@ -2,7 +2,7 @@
 
 namespace job_board.ViewModels.Company
 {
-    public class CompanyRegistrationVM
+    public class CompanyCreationVM
     {
         [Required]
         [EmailAddress]

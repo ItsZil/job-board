@@ -48,7 +48,7 @@ namespace job_board
                     };
                 });
 
-            builder.Services.AddSingleton<DbHelper>();
+            builder.Services.AddScoped<DbHelper>();
             var app = builder.Build();
             App = app;
 

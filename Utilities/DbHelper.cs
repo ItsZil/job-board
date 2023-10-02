@@ -18,7 +18,7 @@ namespace job_board.Utilities
             .AsSplitQuery()
             .FirstOrDefault(c => c.Id == companyId);
 
-            return company == null;
+            return company != null;
         }
 
         public bool DoesAdExist(int adId)
@@ -27,7 +27,7 @@ namespace job_board.Utilities
             .AsSplitQuery()
             .FirstOrDefault(a => a.Id == adId);
 
-            return ad == null;
+            return ad != null;
         }
 
         public bool DoesCompanyAdExist(int companyId, int adId)
@@ -36,7 +36,7 @@ namespace job_board.Utilities
             .AsSplitQuery()
             .FirstOrDefault(a => a.Id == adId && a.Company.Id == companyId);
 
-            return ad == null;
+            return ad != null;
         }
     }
 }

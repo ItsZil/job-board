@@ -2,11 +2,8 @@
 
 namespace job_board.ViewModels.Candidate
 {
-    public class CandidateApplyToAdVM
+    public class CoverLetterVM
     {
-        [Required]
-        public int AdId { get; set; }
-
         [StringLength(1000)]
         public string? CoverLetter { get; set; }
     }

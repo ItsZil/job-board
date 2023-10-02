@@ -1,7 +1,6 @@
 ﻿using job_board.Models;
 using job_board.Utilities;
 using job_board.ViewModels;
-using job_board.ViewModels.CandidateVM;
 using job_board.ViewModels.Company;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -19,36 +18,6 @@ namespace job_board.Controllers
         {
             _logger = logger;
             _context = context;
-        }
-
-        [HttpPost("registerCompany")]
-        public async Task<IActionResult> RegisterCompany([FromBody] CompanyRegistrationVM registrationData)
-        {
-            var hashedPasswordAndSalt = AuthHelper.HashPassword(registrationData.Password);
-
-            var company = new Company
-            {
-                Email = registrationData.Email,
-                CompanyName = registrationData.CompanyName,
-                CompanyDescription = registrationData.CompanyDescription,
-                Industry = registrationData.Industry,
-                Website = registrationData.Website,
-                Salt = hashedPasswordAndSalt.salt,
-                Password = hashedPasswordAndSalt.hashedPassword
-            };
-
-            try
-            {
-                _context.Companies.Add(company);
-                await _context.SaveChangesAsync();
-
-                var token = AuthHelper.GenerateJwtToken(company.Id, "Company");
-                return Created(string.Empty, new { Token = token });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ex.Message);
-            }
         }
 
         [HttpPost("registerCandidate")]
@@ -119,7 +88,7 @@ namespace job_board.Controllers
             }
             else if (role == "admin")
             {
-                var token = AuthHelper.GenerateJwtToken(0, "Admin");
+                var token = AuthHelper.GenerateJwtToken(-1, "admin");
                 return Created(string.Empty, new { Token = token });
             }
 

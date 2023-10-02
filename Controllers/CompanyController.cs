@@ -1,11 +1,9 @@
 ﻿using job_board.Models;
 using job_board.Utilities;
-using job_board.ViewModels;
 using job_board.ViewModels.Company;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Claims;
 
 namespace job_board.Controllers
 {
@@ -56,56 +54,101 @@ namespace job_board.Controllers
             return Ok(company);
         }
 
-        /*
-
-        [HttpPost("GetCompanyAds")]
-        public IActionResult GetCompanyAds(int id)
+        // POST: api/companies
+        [HttpPost]
+        [Authorize(Roles = "company,admin")]
+        public async Task<IActionResult> CreateCompany([FromBody] CompanyCreationVM companyData)
         {
-            var employer = _context.Companys.FirstOrDefault(c => c.Id == id);
+            var hashedPasswordAndSalt = AuthHelper.HashPassword(companyData.Password);
 
-            if (employer == null)
+            var company = new Company
             {
-                return NotFound();
+                Email = companyData.Email,
+                CompanyName = companyData.CompanyName,
+                CompanyDescription = companyData.CompanyDescription,
+                Industry = companyData.Industry,
+                Website = companyData.Website,
+                Salt = hashedPasswordAndSalt.salt,
+                Password = hashedPasswordAndSalt.hashedPassword
+            };
+
+            try
+            {
+                _context.Companies.Add(company);
+                await _context.SaveChangesAsync();
+
+                return Created(string.Empty, _context.Companies.Find(company));
             }
-
-            var ads = _context.Ads
-                .Where(a => a.Company.Id == id)
-                .ToList();
-
-            return Ok(ads);
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
         }
 
-        [HttpPost("UpdateCompany")]
-        [Authorize(Roles = "Company")]
-        public async Task<IActionResult> UpdateCompany([FromBody] CompanyUpdateVM employerData)
+        // PUT: api/companies/{companyId}
+        [HttpPut]
+        [Authorize(Roles = "company,admin")]
+        public async Task<IActionResult> UpdateCompany(int companyId, [FromBody] CompanyUpdateVM companyData)
         {
             int userId = AuthHelper.GetUserId(User);
             if (userId == 0)
             {
                 return Unauthorized();
             }
-            var employer = _context.Companys.FirstOrDefault(e => e.Id == userId);
+            var company = _context.Companies.FirstOrDefault(e => e.Id == userId);
 
-            if (employer == null)
+            if (company == null)
             {
                 return NotFound();
             }
 
-            if (employer.Id != userId)
+            if (company.Id != userId && !User.IsInRole("admin"))
+            {
+                return Forbid();
+            }
+
+            company.CompanyName = companyData.Company;
+            company.CompanyDescription = companyData.CompanyDescription;
+            company.Industry = companyData.Industry;
+            company.Website = companyData.Website;
+
+            _context.Companies.Update(company);
+            await _context.SaveChangesAsync();
+
+            var response = new
+            {
+                companyId,
+                companyData
+            };
+            return Created(string.Empty, response);
+        }
+
+        // DELETE: api/companies/{companyId}
+        [HttpDelete]
+        [Authorize(Roles = "company,admin")]
+        public async Task<IActionResult> DeleteCompany(int companyId)
+        {
+            int userId = AuthHelper.GetUserId(User);
+            if (userId == 0)
             {
                 return Unauthorized();
             }
+            var company = _context.Companies.FirstOrDefault(e => e.Id == userId);
 
-            employer.Company = employerData.Company;
-            employer.CompanyDescription = employerData.CompanyDescription;
-            employer.Industry = employerData.Industry;
-            employer.Website = employerData.Website;
+            if (company == null)
+            {
+                return NotFound();
+            }
 
-            _context.Companys.Update(employer);
+            if (company.Id != userId && !User.IsInRole("admin"))
+            {
+                return Forbid();
+            }
+
+            _context.Companies.Remove(company);
             await _context.SaveChangesAsync();
 
-            return Ok();
+            return Ok("Company deleted successfully.");
         }
-        */
     }
 }
