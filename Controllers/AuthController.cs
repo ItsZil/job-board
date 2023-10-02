@@ -20,7 +20,7 @@ namespace job_board.Controllers
             _context = context;
         }
 
-        [HttpPost("registerCandidate")]
+        [HttpPost]
         public async Task<IActionResult> RegisterCandidate([FromBody] CandidateRegistrationVM registrationData)
         {
             var hashedPasswordAndSalt = AuthHelper.HashPassword(registrationData.Password);
