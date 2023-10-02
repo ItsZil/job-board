@@ -32,7 +32,7 @@ namespace job_board.Models
         public DateTime PostedDate { get; set; } = DateTime.Now;
 
         [Required]
-        [ForeignKey("EmployerId")]
-        public Employer Employer { get; set; }
+        [ForeignKey("CompanyId")]
+        public Company Company { get; set; }
     }
 }

@@ -16,9 +16,11 @@ namespace job_board.Utilities
         public DbSet<Education> Education { get; set; }
         public DbSet<JobHistory> JobHistory { get; set; }
         
-        public DbSet<Employer> Employers { get; set; }
+        
+        public DbSet<Company> Companies { get; set; }
         
         public DbSet<Ad> Ads { get; set; }
         public DbSet<Application> Applications { get; set; }
+
     }
 }

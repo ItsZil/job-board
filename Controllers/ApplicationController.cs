@@ -11,18 +11,21 @@ using System.Security.Claims;
 namespace job_board.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
-    public class CandidateController : ControllerBase
+    [Route("api/companies/{companyId}/ads/{adId}/applications")]
+    public class ApplicationController : ControllerBase
     {
-        private readonly ILogger<CandidateController> _logger;
+        private readonly ILogger<ApplicationController> _logger;
         private readonly AppDbContext _context;
+        private readonly DbHelper _dbHelper;
 
-        public CandidateController(ILogger<CandidateController> logger, AppDbContext context)
+        public ApplicationController(ILogger<ApplicationController> logger, AppDbContext context, DbHelper dbHelper)
         {
             _logger = logger;
             _context = context;
+            _dbHelper = dbHelper;
         }
 
+        /*
         [HttpPost("RegisterCandidate")]
         public async Task<IActionResult> RegisterCandidate([FromBody] CandidateRegistrationVM registrationData)
         {
@@ -56,23 +59,6 @@ namespace job_board.Controllers
             }
         }
 
-        [HttpPost("LoginCandidate")]
-        public async Task<IActionResult> LoginCandidate([FromBody] LoginVM loginData)
-        {
-            var candidate = await _context.Candidates.FirstOrDefaultAsync(c => c.Email == loginData.Email);
-            if (candidate == null)
-            {
-                return NotFound("Account not found.");
-            }
-
-            if (AuthHelper.DoesPasswordMatch(loginData.Password, candidate.Salt, candidate.Password))
-            {
-                var token = AuthHelper.GenerateJwtToken(candidate.Id, "Candidate");
-                return Ok(new { Token = token });
-            }
-            return Unauthorized("Invalid password.");
-        }
-
         [HttpGet("GetAllCandidates")]
         public IActionResult GetAllCandidates()
         {
@@ -87,61 +73,98 @@ namespace job_board.Controllers
                 return NotFound();
             }
             return Ok(candidates);
-        }
+        }*/
 
-        [HttpGet("GetCandidateById")]
-        public IActionResult GetCandidateById(int id)
+        // GET: api/companies/{companyId}/ads/{adId}/applications
+        [HttpGet]
+        [Authorize(Roles = "admin,company")]
+        public IActionResult GetAllApplications(int companyId, int adId)
         {
-            var candidate = _context.Candidates
-                .Include(c => c.Skills)
-                .Include(c => c.Education)
-                .Include(c => c.JobHistory)
-                .AsSplitQuery()
-                .FirstOrDefault(c => c.Id == id);
-            
-            if (candidate == null)
+            if (!_dbHelper.DoesCompanyExist(companyId))
             {
-                return NotFound();
+                return NotFound("Company not found!");
             }
-            return Ok(candidate);
-        }
 
-        [HttpGet("GetCandidateApplications")]
-        [Authorize(Roles = "Candidate")]
-        public IActionResult GetCandidateApplications(int id)
-        {
-            int userId = AuthHelper.GetUserId(User);
-            if (userId != id)
+            if (!_dbHelper.DoesAdExist(adId))
+            {
+                return NotFound("Ad not found!");
+            }
+
+            var applications = _context.Applications
+                .Include(a => a.Candidate)
+                .Where(a => a.Ad.Company.Id == companyId && a.Ad.Id == adId)
+                .AsSplitQuery()
+                .ToList();
+
+            if (User.IsInRole("Company") && User.FindFirstValue(ClaimTypes.NameIdentifier) != companyId.ToString())
             {
                 return Unauthorized();
             }
+
+            return Ok(applications);
+        }
+
+        // GET: api/companies/{companyId}/ads/{adId}/applications/{appId}
+        [HttpGet]
+        [Route("{appId}")]
+        [Authorize]
+        public IActionResult GetApplicationById(int companyId, int adId, int appId)
+        {
+            if (!_dbHelper.DoesCompanyExist(companyId))
+            {
+                return NotFound("Company not found!");
+            }
+
+            if (!_dbHelper.DoesAdExist(adId))
+            {
+                return NotFound("Ad not found!");
+            }
             
-            var candidate = _context.Candidates.FirstOrDefault(c => c.Id == id);
-            if (candidate == null)
+            var application = _context.Applications
+                .Include(a => a.Candidate)
+                .Where(a => a.Ad.Company.Id == companyId && a.Ad.Id == adId)
+                .AsSplitQuery()
+                .FirstOrDefault(a => a.Id == appId);
+            
+            if (application == null)
             {
                 return NotFound();
             }
-
-            var applicationsResponse = _context.Applications
-                .Include(a => a.Ad)
-                    .ThenInclude(ad => ad.Employer)
-                .Where(app => app.Candidate.Id == id)
-                .Select(app => new Application
-                {
-                    Id = app.Id,
-                    Ad = new Ad
+            
+            int userId = AuthHelper.GetUserId(User);
+            switch (User.FindFirstValue(ClaimTypes.Role))
+            {
+                case "Candidate":
+                    if (userId != application.Candidate.Id)
                     {
-                        Id = app.Ad.Id,
-                        Title = app.Ad.Title,
-                        Employer = new Employer { Company = app.Ad.Employer.Company }
-                    },
-                    ApplicationDate = app.ApplicationDate
-                })
-                .ToList();
+                        return Unauthorized();
+                    }
+                    break;
+                case "Company":
+                    if (userId != application.Ad.Company.Id)
+                    {
+                        return Unauthorized();
+                    }
+                    break;
+                default:
+                    break;
+            }
 
+            var applicationsResponse = new Application
+            {
+                Id = application.Id,
+                Ad = new Ad
+                {
+                    Id = application.Ad.Id,
+                    Title = application.Ad.Title,
+                    Company = new Company { CompanyName = application.Ad.Company.CompanyName }
+                },
+                ApplicationDate = application.ApplicationDate
+            };
             return Ok(applicationsResponse);
         }
 
+        /*
         [HttpPost("SaveCandidateSkills")]
         [Authorize(Roles = "Candidate")]
         public async Task<IActionResult> SaveCandidateSkills([FromBody] CandidateSaveSkillsVM saveSkills)
@@ -295,6 +318,6 @@ namespace job_board.Controllers
             {
                 return StatusCode(500, ex.Message);
             }
-        }
+        }*/
     }
 }

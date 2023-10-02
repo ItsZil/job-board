@@ -48,6 +48,7 @@ namespace job_board
                     };
                 });
 
+            builder.Services.AddSingleton<DbHelper>();
             var app = builder.Build();
             App = app;
 
@@ -67,9 +68,7 @@ namespace job_board
             app.UseSwagger();
             app.UseSwaggerUI();
 
-            app.MapControllerRoute(
-                name: "default",
-                pattern: "{controller}/{action=Index}/{id?}");
+            app.MapControllers();
 
             app.MapFallbackToFile("index.html");
 

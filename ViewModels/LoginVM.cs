@@ -11,5 +11,8 @@ namespace job_board.ViewModels
         [Required]
         [DataType(DataType.Password)]
         public string Password { get; set; }
+
+        [Required]
+        public string Role { get; set; }
     }
 }

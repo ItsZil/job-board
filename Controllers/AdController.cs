@@ -9,19 +9,22 @@ using System.Xml.Linq;
 
 namespace job_board.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/companies/{companyId}/ads")]
     [ApiController]
     public class AdController : ControllerBase
     {
         private readonly ILogger<AdController> _logger;
         private readonly AppDbContext _context;
+        private readonly DbHelper _dbHelper;
 
-        public AdController(ILogger<AdController> logger, AppDbContext context)
+        public AdController(ILogger<AdController> logger, AppDbContext context, DbHelper dbHelper)
         {
             _logger = logger;
             _context = context;
+            _dbHelper = dbHelper;
         }
 
+        /*
         [HttpPost("CreateAd")]
         [Authorize(Roles = "Employer")]
         public async Task<IActionResult> CreateAd([FromBody] AdCreateVM adData)
@@ -50,36 +53,52 @@ namespace job_board.Controllers
             _context.Ads.Add(ad);
             await _context.SaveChangesAsync();
             return Ok();
-        }
+        }*/
 
-        [HttpGet("GetAllAds")]
-        public IActionResult GetAllAds()
+        [HttpGet]
+        public IActionResult GetAllAds(int companyId)
         {
+            if (!_dbHelper.DoesCompanyExist(companyId))
+            {
+                return NotFound("Company not found.");
+            }
+
             var ads = _context.Ads
-                .Include(a => a.Employer)
+                .Include(a => a.Company)
+                .Where(a => a.Company.Id == companyId)
                 .ToList();
-            
+
             if (ads == null)
             {
-                return NotFound();
+                return NotFound("Ad not found.");
             }
             return Ok(ads);
         }
 
-        [HttpGet("GetAdById")]
-        public IActionResult GetAdById(int id)
+        // GET: api/companies/{companyId}/ads/{adId}
+        [HttpGet]
+        [Route("{adId}")]
+        public IActionResult GetAdById(int adId, int companyId)
         {
+            if (!_dbHelper.DoesCompanyExist(companyId))
+            {
+                return NotFound("Company not found.");
+            }
+
             var ad = _context.Ads
-                .Include(a => a.Employer)
-                .FirstOrDefault(a => a.Id == id);
+                .Include(a => a.Company)
+                .Where(a => a.Company.Id == companyId)
+                .FirstOrDefault(a => a.Id == adId);
             
             if (ad == null)
             {
                 return NotFound();
             }
+
             return Ok(ad);
         }
 
+        /*
         [HttpGet("GetAdApplicants")]
         [Authorize(Roles = "Employer")]
         public IActionResult GetAdApplicants(int id)
@@ -182,6 +201,6 @@ namespace job_board.Controllers
             _context.Ads.Remove(ad);
             await _context.SaveChangesAsync();
             return Ok();
-        }
+        }*/
     }
 }

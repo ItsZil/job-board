@@ -4,7 +4,7 @@ using System.Text.Json.Serialization;
 
 namespace job_board.Models
 {
-    public class Employer
+    public class Company
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
@@ -26,7 +26,7 @@ namespace job_board.Models
 
         [Required]
         [StringLength(100)]
-        public string Company { get; set; }
+        public string CompanyName { get; set; }
 
         public string? CompanyDescription { get; set; }
 

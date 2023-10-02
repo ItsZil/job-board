@@ -1,12 +1,20 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace job_board.ViewModels.Employer
+namespace job_board.ViewModels.Company
 {
-    public class EmployerUpdateVM
+    public class CompanyRegistrationVM
     {
         [Required]
+        [EmailAddress]
+        public string Email { get; set; }
+
+        [Required]
+        [DataType(DataType.Password)]
+        public string Password { get; set; }
+
+        [Required]
         [StringLength(100)]
-        public string Company { get; set; }
+        public string CompanyName { get; set; }
 
         public string? CompanyDescription { get; set; }
 
