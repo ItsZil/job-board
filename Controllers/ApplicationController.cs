@@ -55,15 +55,13 @@ namespace job_board.Controllers
             List<ApplicationResponseVM> applicationResponses = new List<ApplicationResponseVM>();
             foreach (var app in applications)
             {
-                var applicationsResponse = new ApplicationResponseVM
+                var applicationResponse = new ApplicationResponseVM
                 {
                     Id = app.Id,
                     ApplicationDate = app.ApplicationDate,
-                    CoverLetter = app.CoverLetter,
-                    CandidateId = app.Candidate.Id,
-                    CandidateFullName = app.Candidate.FirstName + " " + app.Candidate.LastName,
+                    CoverLetter = app.CoverLetter
                 };
-                applicationResponses.Add(applicationsResponse);
+                applicationResponses.Add(applicationResponse);
             }
             return Ok(applicationResponses);
         }
@@ -106,22 +104,25 @@ namespace job_board.Controllers
                 return Forbid();
             }
 
-            var applicationsResponse = new ApplicationResponseVM
+            var applicationsResponse = new
             {
-                Id = app.Id,
-                ApplicationDate = app.ApplicationDate,
-                CoverLetter = app.CoverLetter,
-                CandidateId = app.Candidate.Id,
-                CandidateFullName = app.Candidate.FirstName + " " + app.Candidate.LastName,
+                app.Id,
+                app.ApplicationDate,
+                app.CoverLetter
             };
             return Ok(applicationsResponse);
         }
 
         // POST: api/companies/{companyId}/ads/{adId}/applications
         [HttpPost]
-        [Authorize(Roles = "admin,candidate")]
+        [Authorize(Roles = "candidate")]
         public async Task<IActionResult> CreateApplication(int companyId, int adId, [FromBody] CoverLetterVM candidateApp)
         {
+            if (candidateApp == null)
+            {
+                return BadRequest();
+            }
+
             if (!_dbHelper.DoesCompanyExist(companyId))
             {
                 return NotFound("Company not found.");
@@ -143,8 +144,13 @@ namespace job_board.Controllers
             int userId = AuthHelper.GetUserId(User);
             var candidate = _context.Candidates
                 .FirstOrDefault(c => c.Id == userId);
+
+            if (User.IsInRole("admin") && candidate == null)
+            {
+                return NotFound("Candidate not found.");
+            }
             
-            if (candidate == null && User.IsInRole("admin"))
+            if (candidate == null && !User.IsInRole("admin"))
             {
                 userId = _context.Candidates
                     .Select(c => c.Id)
@@ -162,7 +168,13 @@ namespace job_board.Controllers
             {
                 _context.Applications.Add(candidateApplication);
                 await _context.SaveChangesAsync();
-                return Created(string.Empty, candidateApplication);
+
+                var response = new {
+                    candidateApplication.Id,
+                    candidateApplication.CoverLetter,
+                    candidateApplication.ApplicationDate,
+                };
+                return Created(string.Empty, response);
             }
             catch (Exception ex)
             {
@@ -176,6 +188,11 @@ namespace job_board.Controllers
         [Authorize(Roles = "admin,candidate")]
         public async Task<IActionResult> UpdateApplication(int companyId, int adId, int appId, [FromBody] CoverLetterVM candidateApp)
         {
+            if (appId == null)
+            {
+                return BadRequest();
+            }
+
             if (!_dbHelper.DoesCompanyExist(companyId))
             {
                 return NotFound("Company not found.");
@@ -212,7 +229,13 @@ namespace job_board.Controllers
             {
                 _context.Applications.Update(app);
                 await _context.SaveChangesAsync();
-                return Ok(app);
+
+                var updateResponse = new {
+                    app.Id,
+                    app.CoverLetter,
+                    app.ApplicationDate,
+                };
+                return Ok(updateResponse);
             }
             catch (Exception ex)
             {

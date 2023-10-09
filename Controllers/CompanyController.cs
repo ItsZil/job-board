@@ -31,7 +31,7 @@ namespace job_board.Controllers
 
             if (employers == null)
             {
-                return NotFound();
+                return NotFound("No companies found.");
             }
             
             return Ok(employers);
@@ -48,7 +48,7 @@ namespace job_board.Controllers
             
             if (company == null)
             {
-                return NotFound();
+                return NotFound("Company not found.");
             }
             
             return Ok(company);
@@ -59,6 +59,10 @@ namespace job_board.Controllers
         [Authorize(Roles = "company,admin")]
         public async Task<IActionResult> CreateCompany([FromBody] CompanyCreationVM companyData)
         {
+            if (companyData == null)
+            {
+                return BadRequest();
+            }
             var hashedPasswordAndSalt = AuthHelper.HashPassword(companyData.Password);
 
             var company = new Company
@@ -99,7 +103,7 @@ namespace job_board.Controllers
 
             if (company == null)
             {
-                return NotFound();
+                return NotFound("Company not found.");
             }
 
             if (company.Id != userId && !User.IsInRole("admin"))
@@ -115,12 +119,12 @@ namespace job_board.Controllers
             _context.Companies.Update(company);
             await _context.SaveChangesAsync();
 
-            var response = new
+            /*var response = new
             {
                 companyId,
                 companyData
-            };
-            return Created(string.Empty, response);
+            };*/
+            return Ok(company);
         }
 
         // DELETE: api/companies/{companyId}
@@ -133,11 +137,11 @@ namespace job_board.Controllers
             {
                 return Unauthorized();
             }
-            var company = _context.Companies.FirstOrDefault(e => e.Id == userId);
+            var company = _context.Companies.FirstOrDefault(e => e.Id == companyId);
 
             if (company == null)
             {
-                return NotFound();
+                return NotFound("Company not found.");
             }
 
             if (company.Id != userId && !User.IsInRole("admin"))

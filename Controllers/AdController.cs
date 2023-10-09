@@ -100,8 +100,18 @@ namespace job_board.Controllers
             };
             _context.Ads.Add(ad);
             await _context.SaveChangesAsync();
+
+            var response = new {
+                ad.Id,
+                ad.Title,
+                ad.Description,
+                ad.SalaryFrom,
+                ad.SalaryTo,
+                ad.Location,
+                ad.PostedDate
+            };
             
-            return Created(string.Empty, ad);
+            return Created(string.Empty, response);
         }
 
         // PUT: api/companies/{companyId}/ads/{adId}
@@ -141,8 +151,18 @@ namespace job_board.Controllers
             ad.Location = adData.Location;
             ad.PostedDate = DateTime.Now;
 
+            var response = new {
+                ad.Id,
+                ad.Title,
+                ad.Description,
+                ad.SalaryFrom,
+                ad.SalaryTo,
+                ad.Location,
+                ad.PostedDate
+            };
+
             await _context.SaveChangesAsync();
-            return Created(string.Empty, ad);
+            return Ok(response);
         }
 
         // DELETE: api/companies/{companyId}/ads/{adId}

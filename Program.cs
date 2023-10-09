@@ -16,11 +16,11 @@ namespace job_board
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            builder.Services.AddControllersWithViews()
-                .AddJsonOptions(options =>
+            builder.Services.AddControllersWithViews();
+                /*.AddJsonOptions(options =>
                 {
                     options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
-                });
+                });*/
             builder.Services.AddSwaggerGen();
 
             builder.Configuration.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
