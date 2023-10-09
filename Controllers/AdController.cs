@@ -65,7 +65,7 @@ namespace job_board.Controllers
             
             if (ad == null)
             {
-                return NotFound();
+                return NotFound("Ad not found for this company.");
             }
 
             return Ok(ad);
@@ -106,6 +106,7 @@ namespace job_board.Controllers
 
         // PUT: api/companies/{companyId}/ads/{adId}
         [HttpPut]
+        [Route("{adId}")]
         [Authorize(Roles = "company,admin")]
         public async Task<IActionResult> UpdateAd(int companyId, int adId, [FromBody] AdUpdateVM adData)
         {
@@ -113,13 +114,18 @@ namespace job_board.Controllers
             {
                 return NotFound("Company not found.");
             }
-            
+
+            if (!_dbHelper.DoesAdExist(adId))
+            {
+                return NotFound("Ad not found.");
+            }
+
             var ad = await _context.Ads
                 .Include(e => e.Company)
                 .FirstOrDefaultAsync(a => a.Id == adId && a.Company.Id == companyId);
             if (ad == null)
             {
-                return NotFound("Ad not found.");
+                return NotFound("Ad not found for this company.");
             }
 
             int userId = AuthHelper.GetUserId(User);
@@ -141,6 +147,7 @@ namespace job_board.Controllers
 
         // DELETE: api/companies/{companyId}/ads/{adId}
         [HttpDelete]
+        [Route("{adId}")]
         [Authorize(Roles = "admin,company")]
         public async Task<IActionResult> DeleteAd(int companyId, int adId)
         {
@@ -148,13 +155,18 @@ namespace job_board.Controllers
             {
                 return NotFound("Company not found.");
             }
-            
+
+            if (!_dbHelper.DoesAdExist(adId))
+            {
+                return NotFound("Ad not found.");
+            }
+
             var ad = await _context.Ads
                 .Include(e => e.Company)
                 .FirstOrDefaultAsync(a => a.Id == adId && a.Company.Id == companyId);
             if (ad == null)
             {
-                return NotFound();
+                return NotFound("Ad not found for this company.");
             }
 
             int userId = AuthHelper.GetUserId(User);
@@ -165,7 +177,7 @@ namespace job_board.Controllers
 
             _context.Ads.Remove(ad);
             await _context.SaveChangesAsync();
-            return Ok("Ad deleted successfully.");
+            return NoContent();
         }
     }
 }

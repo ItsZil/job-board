@@ -83,7 +83,12 @@ namespace job_board.Controllers
             {
                 return NotFound("Ad not found.");
             }
-            
+
+            if (!_dbHelper.DoesCompanyAdExist(companyId, adId))
+            {
+                return NotFound("Ad not found for this company.");
+            }
+
             var app = _context.Applications
                 .Include(a => a.Candidate)
                 .Where(a => a.Ad.Company.Id == companyId && a.Ad.Id == adId)
@@ -92,11 +97,11 @@ namespace job_board.Controllers
             
             if (app == null)
             {
-                return NotFound();
+                return NotFound("Application not found.");
             }
             
             int userId = AuthHelper.GetUserId(User);
-            if (!User.IsInRole("admin") && (userId != app.Candidate.Id || userId != app.Ad.Company.Id))
+            if (!User.IsInRole("admin") && userId != app.Candidate.Id && userId != app.Ad.Company.Id)
             {
                 return Forbid();
             }
@@ -125,6 +130,11 @@ namespace job_board.Controllers
             if (!_dbHelper.DoesAdExist(adId))
             {
                 return NotFound("Ad not found.");
+            }
+
+            if (!_dbHelper.DoesCompanyAdExist(companyId, adId))
+            {
+                return NotFound("Ad not found for this company.");
             }
             
             var ad = _context.Ads
@@ -162,6 +172,7 @@ namespace job_board.Controllers
 
         // PUT: api/companies/{companyId}/ads/{adId}/applications/{appId}
         [HttpPut]
+        [Route("{appId}")]
         [Authorize(Roles = "admin,candidate")]
         public async Task<IActionResult> UpdateApplication(int companyId, int adId, int appId, [FromBody] CoverLetterVM candidateApp)
         {
@@ -175,13 +186,19 @@ namespace job_board.Controllers
                 return NotFound("Ad not found.");
             }
 
+            if (!_dbHelper.DoesCompanyAdExist(companyId, adId))
+            {
+                return NotFound("Ad not found for this company.");
+            }
+
             var app = _context.Applications
                 .Where(a => a.Id == appId && a.Ad.Company.Id == companyId && a.Ad.Id == adId)
+                .Include(a => a.Candidate)
                 .FirstOrDefault();
             
             if (app == null)
             {
-                return NotFound("Applicatio not found.");
+                return NotFound("Application not found.");
             }
 
             int userId = AuthHelper.GetUserId(User);
@@ -205,6 +222,7 @@ namespace job_board.Controllers
 
         // DEL: api/companies/{companyId}/ads/{adId}/applications/{appId}
         [HttpDelete]
+        [Route("{appId}")]
         [Authorize(Roles = "admin,candidate")]
         public async Task<IActionResult> DeleteApplication(int companyId, int adId, int appId)
         {
@@ -218,8 +236,14 @@ namespace job_board.Controllers
                 return NotFound("Ad not found.");
             }
 
+            if (!_dbHelper.DoesCompanyAdExist(companyId, adId))
+            {
+                return NotFound("Ad not found for this company.");
+            }
+
             var app = _context.Applications
                 .Where(a => a.Id == appId && a.Ad.Company.Id == companyId && a.Ad.Id == adId)
+                .Include(a => a.Candidate)
                 .FirstOrDefault();
 
             if (app == null)
@@ -237,7 +261,7 @@ namespace job_board.Controllers
             {
                 _context.Applications.Remove(app);
                 await _context.SaveChangesAsync();
-                return Ok();
+                return NoContent();
             }
             catch (Exception ex)
             {

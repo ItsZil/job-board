@@ -86,7 +86,7 @@ namespace job_board.Controllers
         }
 
         // PUT: api/companies/{companyId}
-        [HttpPut]
+        [HttpPut("{companyId}")]
         [Authorize(Roles = "company,admin")]
         public async Task<IActionResult> UpdateCompany(int companyId, [FromBody] CompanyUpdateVM companyData)
         {
@@ -95,7 +95,7 @@ namespace job_board.Controllers
             {
                 return Unauthorized();
             }
-            var company = _context.Companies.FirstOrDefault(e => e.Id == userId);
+            var company = _context.Companies.FirstOrDefault(e => e.Id == companyId);
 
             if (company == null)
             {
@@ -124,7 +124,7 @@ namespace job_board.Controllers
         }
 
         // DELETE: api/companies/{companyId}
-        [HttpDelete]
+        [HttpDelete("{companyId}")]
         [Authorize(Roles = "company,admin")]
         public async Task<IActionResult> DeleteCompany(int companyId)
         {
@@ -148,7 +148,7 @@ namespace job_board.Controllers
             _context.Companies.Remove(company);
             await _context.SaveChangesAsync();
 
-            return Ok("Company deleted successfully.");
+            return NoContent();
         }
     }
 }
