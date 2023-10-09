@@ -77,7 +77,7 @@ namespace job_board.Controllers
                 _context.Companies.Add(company);
                 await _context.SaveChangesAsync();
 
-                return Created(string.Empty, _context.Companies.Find(company));
+                return Created(string.Empty, _context.Companies.Find(company.Id));
             }
             catch (Exception ex)
             {
