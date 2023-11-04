@@ -31,7 +31,10 @@ namespace job_board.Controllers
                 FirstName = registrationData.FirstName,
                 LastName = registrationData.LastName,
                 Salt = hashedPasswordAndSalt.salt,
-                Password = hashedPasswordAndSalt.hashedPassword
+                Password = hashedPasswordAndSalt.hashedPassword,
+                City = registrationData.City,
+                Phone = registrationData.Phone,
+                DateOfBirth = registrationData.DateOfBirth
             };
 
             try
@@ -97,7 +100,7 @@ namespace job_board.Controllers
                 var token = AuthHelper.GenerateJwtToken(userId, role);
                 return Created(string.Empty, new { Token = token });
             }
-            return Unauthorized("Invalid password.");
+            return Unauthorized();
         }
     }
 }

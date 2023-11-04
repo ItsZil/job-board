@@ -36,9 +36,18 @@ namespace job_board.Controllers
                 return NotFound("Company not found.");
             }
 
+            if (User.IsInRole("company") && User.FindFirstValue(ClaimTypes.NameIdentifier) != companyId.ToString())
+            {
+                return Forbid();
+            }
+
             if (!_dbHelper.DoesAdExist(adId))
             {
                 return NotFound("Ad not found.");
+            }
+            else if (!_dbHelper.DoesCompanyAdExist(companyId, adId))
+            {
+                return Forbid();
             }
 
             var applications = _context.Applications
@@ -46,11 +55,6 @@ namespace job_board.Controllers
                 .Where(a => a.Ad.Company.Id == companyId && a.Ad.Id == adId)
                 .AsSplitQuery()
                 .ToList();
-
-            if (User.IsInRole("company") && User.FindFirstValue(ClaimTypes.NameIdentifier) != companyId.ToString())
-            {
-                return Forbid();
-            }
 
             List<ApplicationResponseVM> applicationResponses = new List<ApplicationResponseVM>();
             foreach (var app in applications)
@@ -89,7 +93,8 @@ namespace job_board.Controllers
 
             var app = _context.Applications
                 .Include(a => a.Candidate)
-                .Where(a => a.Ad.Company.Id == companyId && a.Ad.Id == adId)
+                .Include(a => a.Ad)
+                .ThenInclude(a => a.Company)
                 .AsSplitQuery()
                 .FirstOrDefault(a => a.Id == appId);
             
@@ -115,7 +120,7 @@ namespace job_board.Controllers
 
         // POST: api/companies/{companyId}/ads/{adId}/applications
         [HttpPost]
-        [Authorize(Roles = "candidate")]
+        [Authorize(Roles = "admin,candidate")]
         public async Task<IActionResult> CreateApplication(int companyId, int adId, [FromBody] CoverLetterVM candidateApp)
         {
             if (candidateApp == null)
@@ -188,11 +193,6 @@ namespace job_board.Controllers
         [Authorize(Roles = "admin,candidate")]
         public async Task<IActionResult> UpdateApplication(int companyId, int adId, int appId, [FromBody] CoverLetterVM candidateApp)
         {
-            if (appId == null)
-            {
-                return BadRequest();
-            }
-
             if (!_dbHelper.DoesCompanyExist(companyId))
             {
                 return NotFound("Company not found.");
@@ -209,14 +209,11 @@ namespace job_board.Controllers
             }
 
             var app = _context.Applications
-                .Where(a => a.Id == appId && a.Ad.Company.Id == companyId && a.Ad.Id == adId)
                 .Include(a => a.Candidate)
-                .FirstOrDefault();
-            
-            if (app == null)
-            {
-                return NotFound("Application not found.");
-            }
+                .Include(a => a.Ad)
+                .ThenInclude(a => a.Company)
+                .AsSplitQuery()
+                .FirstOrDefault(a => a.Id == appId);
 
             int userId = AuthHelper.GetUserId(User);
             if (!User.IsInRole("admin") && userId != app.Candidate.Id)

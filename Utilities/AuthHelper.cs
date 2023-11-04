@@ -21,7 +21,6 @@ namespace job_board.Utilities
                 saltString = Convert.ToBase64String(passwordSalt);
                 passwordHashString = Convert.ToBase64String(hash);
             }
-
             return (saltString, passwordHashString);
         }
         
@@ -54,7 +53,7 @@ namespace job_board.Utilities
                 Subject = new ClaimsIdentity(claims),
                 Issuer = Program.App.Configuration.GetValue<string>("Jwt_Issuer"),
                 Audience = "JobBoard",
-                Expires = DateTime.UtcNow.AddHours(2),
+                Expires = DateTime.UtcNow.AddHours(3),
                 SigningCredentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha512)
             };
 
