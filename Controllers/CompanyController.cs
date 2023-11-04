@@ -56,7 +56,7 @@ namespace job_board.Controllers
 
         // POST: api/companies
         [HttpPost]
-        [Authorize(Roles = "company,admin")]
+        [Authorize(Roles = "admin")]
         public async Task<IActionResult> CreateCompany([FromBody] CompanyCreationVM companyData)
         {
             if (companyData == null)
