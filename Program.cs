@@ -1,28 +1,24 @@
-
+using job_board.Components;
 using job_board.Utilities;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
-using System.Text.Json.Serialization;
 
 namespace job_board
 {
     public class Program
     {
-        public static WebApplication App { get; set; }
+        public static WebApplication Application { get; set; }
 
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            builder.Services.AddControllersWithViews();
-                /*.AddJsonOptions(options =>
-                {
-                    options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
-                });*/
-            builder.Services.AddSwaggerGen();
-
+            // Add services to the container.
+            builder.Services.AddRazorComponents()
+                .AddInteractiveServerComponents();
+            builder.Services.AddControllers();
             builder.Configuration.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
             var connection = builder.Configuration.GetConnectionString("AZURE_SQL_CONNECTIONSTRING");
 
@@ -50,27 +46,24 @@ namespace job_board
 
             builder.Services.AddScoped<DbHelper>();
             var app = builder.Build();
-            App = app;
+            Application = app;
 
             // Configure the HTTP request pipeline.
             if (!app.Environment.IsDevelopment())
             {
+                app.UseExceptionHandler("/Error");
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
 
             app.UseHttpsRedirection();
+
             app.UseStaticFiles();
-            app.UseRouting();
-            app.UseAuthentication();
-            app.UseAuthorization();
-
-            app.UseSwagger();
-            app.UseSwaggerUI();
-
+            app.UseAntiforgery();
             app.MapControllers();
 
-            app.MapFallbackToFile("index.html");
+            app.MapRazorComponents<App>()
+                .AddInteractiveServerRenderMode();
 
             app.Run();
         }

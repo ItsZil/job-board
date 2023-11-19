@@ -39,7 +39,7 @@ namespace job_board.Utilities
 
         public static string GenerateJwtToken(int userId, string role)
         {
-            var jwtKey = Program.App.Configuration.GetValue<string>("Jwt_Key");
+            var jwtKey = Program.Application.Configuration.GetValue<string>("Jwt_Key");
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
 
             var claims = new[]
@@ -51,7 +51,7 @@ namespace job_board.Utilities
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(claims),
-                Issuer = Program.App.Configuration.GetValue<string>("Jwt_Issuer"),
+                Issuer = Program.Application.Configuration.GetValue<string>("Jwt_Issuer"),
                 Audience = "JobBoard",
                 Expires = DateTime.UtcNow.AddHours(3),
                 SigningCredentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha512)
