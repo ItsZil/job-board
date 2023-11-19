@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using MudBlazor.Services;
 
 namespace job_board
 {
@@ -18,7 +19,10 @@ namespace job_board
             // Add services to the container.
             builder.Services.AddRazorComponents()
                 .AddInteractiveServerComponents();
+
             builder.Services.AddControllers();
+            builder.Services.AddMudServices();
+
             builder.Configuration.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
             var connection = builder.Configuration.GetConnectionString("AZURE_SQL_CONNECTIONSTRING");
 
