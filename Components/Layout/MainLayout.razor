@@ -5,25 +5,76 @@
 <MudSnackbarProvider />
 
 <MudLayout>
-    <MudAppBar>
+    <MudAppBar Elevation="1">
         <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
-        My Application
+        <MudText Typo="Typo.h5" Class="ml-3">Job Board</MudText>
+        <MudSpacer />
+        <div class="d-flex">
+            <MudIconButton Icon="@Icons.Material.Filled.AccountCircle" Color="Color.Inherit" Size="Size.Large" OnClick="@ToggleAccountOpen" />
+            <MudPopover Open="@_accountMenuOpen" AnchorOrigin="Origin.BottomCenter" TransformOrigin="Origin.TopCenter">
+                @{
+                    @if (_loggedIn)
+                    {
+                        <MudButton Href="/logout">
+                            <ChildContent>
+                                <MudIcon Icon="@Icons.Material.Filled.ExitToApp" Class="mr-1" />
+                                <MudText Typo="Typo.button" Color="Color.Inherit">Logout</MudText>
+                            </ChildContent>
+                        </MudButton>
+                    }
+                    else
+                    {
+                        <div>
+                            <MudButton Href="/login">
+                                <ChildContent>
+                                    <MudIcon Icon="@Icons.Material.Filled.ExitToApp" Class="mr-1" />
+                                    <MudText Typo="Typo.button" Color="Color.Inherit">Login</MudText>
+                                </ChildContent>
+                            </MudButton>
+
+                            <MudButton Href="/register">
+                                <ChildContent>
+                                    <MudIcon Icon="@Icons.Material.Filled.PersonAdd" Class="mr-1" />
+                                    <MudText Typo="Typo.button" Color="Color.Inherit">Register</MudText>
+                                </ChildContent>
+                            </MudButton>
+                        </div>
+                    }
+                }
+            </MudPopover>
+        </div>
     </MudAppBar>
-    <MudDrawer @bind-Open="@_drawerOpen">
-        <MyNavMenu/>
+    <MudDrawer @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="2">
+        <NavMenu></NavMenu>
     </MudDrawer>
     <MudMainContent>
-        <MudContainer MaxWidth="MaxWidth.Medium">
-            @Body
-        </MudContainer>
+        @Body
     </MudMainContent>
 </MudLayout>
+
 @code {
     bool _drawerOpen = true;
+    bool _accountMenuOpen = false;
+    bool _loggedIn = false;
 
     void DrawerToggle()
     {
         _drawerOpen = !_drawerOpen;
+    }
+
+    void ToggleAccountOpen()
+    {
+        _accountMenuOpen = !_accountMenuOpen;
+    }
+
+    void Login()
+    {
+        // Open the 
+    }
+
+    void Register()
+    {
+        // Handle register logic
     }
 }
 
