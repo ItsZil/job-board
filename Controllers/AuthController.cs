@@ -58,41 +58,39 @@ namespace job_board.Controllers
             string salt = string.Empty;
             string hashedPassword = string.Empty;
             int userId = 0;
-            
-            if (role == "candidate")
+
+            var candidate = await _context.Candidates
+                .Where(c => c.Email == loginData.Email)
+                .FirstOrDefaultAsync();
+            Company company = null;
+
+            if (role == "admin")
             {
-                var candidate = await _context.Candidates
-                    .Where(c => c.Email == loginData.Email)
-                    .FirstOrDefaultAsync();
-
-                if (candidate == null)
-                {
-                    return NotFound("Account not found.");
-                }
-
+                var token = AuthHelper.GenerateJwtToken(-1, "admin");
+                return Created(string.Empty, new { Token = token });
+            }
+            else if (candidate != null)
+            {
                 userId = candidate.Id;
                 salt = candidate.Salt;
                 hashedPassword = candidate.Password;
+                role = "candidate";
             }
-            else if (role == "company")
+            else
             {
-                var company = await _context.Companies
+                company = await _context.Companies
                     .Where(c => c.Email == loginData.Email)
                     .FirstOrDefaultAsync();
-
-                if (company == null)
-                {
-                    return NotFound("Account not found.");
-                }
 
                 userId = company.Id;
                 salt = company.Salt;
                 hashedPassword = company.Password;
+                role = "company";
             }
-            else if (role == "admin")
+            
+            if (candidate == null && company == null)
             {
-                var token = AuthHelper.GenerateJwtToken(-1, "admin");
-                return Created(string.Empty, new { Token = token });
+                return NotFound("Account not found.");
             }
 
             if (AuthHelper.DoesPasswordMatch(loginData.Password, salt, hashedPassword))

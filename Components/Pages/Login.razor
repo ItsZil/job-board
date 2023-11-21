@@ -1,0 +1,66 @@
+﻿@page "/login"
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
+@using job_board.Utilities
+@using job_board.ViewModels
+@using System.Text.Json;
+@using System.Text;
+@inject IHttpClientFactory ClientFactory
+@inject TokenAuthStateProvider TokenAuthStateProvider
+@inject ProtectedLocalStorage ProtectedLocalStorage
+@inject NavigationManager Navigation
+
+<PageTitle>Login</PageTitle>
+
+<MudContainer Class="mt-16 px-8" MaxWidth="MaxWidth.Large">
+    <MudPaper Elevation="3" Class="pa-4">
+        <MudText Typo="Typo.h5" Class="mb-4">Login</MudText>
+
+        <MudForm Model="_loginModel" OnValidSubmit="HandleSubmit">
+            <MudTextField @bind-Value="_loginModel.Email" Label="Email" InputType="InputType.Email" Required="true" />
+            <MudTextField @bind-Value="_loginModel.Password" Label="Password" InputType="InputType.Password" Required="true" />
+
+            <br />
+            <MudButton Disabled="@_processing" Type="ButtonType.Submit" OnClick="HandleSubmit" Variant="Variant.Filled" Color="Color.Primary">
+                @if (_processing)
+                {
+                    <MudProgressCircular Size="Size.Small" />
+                }
+                Login
+                </MudButton>
+        </MudForm>
+
+        @if (_loginError)
+        {
+            <div class="mt-4">
+                <MudAlert Severity="Severity.Error" IsOpen="true">@_errorText</MudAlert>
+            </div>
+        }
+    </MudPaper>
+</MudContainer>
+
+@code {
+    private LoginVM _loginModel = new LoginVM();
+    private bool _loginError;
+    private bool _processing = false;
+    private string _errorText = "Invalid email or password.";
+
+    private async Task HandleSubmit()
+    {
+        _processing = true;
+
+        var serializedModel = JsonSerializer.Serialize(_loginModel);
+        var client = ClientFactory.CreateClient("httpClient");
+        var authenticationResult = await client.PostAsync("api/Auth/login", new StringContent(serializedModel, Encoding.UTF8, "application/json"));
+        _loginError = authenticationResult.StatusCode != System.Net.HttpStatusCode.Created;
+
+        if (!_loginError)
+        {
+            string token = await authenticationResult.Content.ReadAsStringAsync();
+            await TokenAuthStateProvider.SetTokenAsync(token);
+
+            Navigation.NavigateTo("/");
+        }
+        _processing = false;
+    }
+}

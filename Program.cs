@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using MudBlazor.Services;
+using Microsoft.AspNetCore.Components.Authorization;
 
 namespace job_board
 {
@@ -22,15 +23,24 @@ namespace job_board
 
             builder.Services.AddControllers();
             builder.Services.AddMudServices();
+            builder.Services.AddScoped<TokenAuthStateProvider>();
+            builder.Services.AddScoped<AuthenticationStateProvider>(provider => provider.GetRequiredService<TokenAuthStateProvider>());
+
 
             builder.Configuration.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+
+            var baseAddress = builder.Configuration["Base_Address"];
+            builder.Services.AddHttpClient("httpClient", client =>
+            {
+                client.BaseAddress = new Uri(baseAddress);
+            });
             var connection = builder.Configuration.GetConnectionString("AZURE_SQL_CONNECTIONSTRING");
 
             builder.Services.AddDbContext<AppDbContext>(options =>
                 options.UseSqlServer(connection,
                     sqlServerOptionsAction: sqlOptions =>
                     {
-                        sqlOptions.EnableRetryOnFailure(maxRetryCount: 5, maxRetryDelay: TimeSpan.FromSeconds(5), errorNumbersToAdd: null);
+                        sqlOptions.EnableRetryOnFailure(maxRetryCount: 5, maxRetryDelay: TimeSpan.FromSeconds(10), errorNumbersToAdd: null);
                     }));
 
             builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -65,6 +75,8 @@ namespace job_board
             app.UseStaticFiles();
             app.UseAntiforgery();
             app.MapControllers();
+            app.UseAuthentication();
+            app.UseAuthorization();
 
             app.MapRazorComponents<App>()
                 .AddInteractiveServerRenderMode();

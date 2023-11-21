@@ -1,39 +1,146 @@
 ﻿@page "/"
+@using Microsoft.AspNetCore.Components.Authorization
+@using job_board.Utilities
 
 <PageTitle>Home</PageTitle>
 
 <MudContainer Class="mt-16 px-8" MaxWidth="MaxWidth.False">
     <MudGrid>
-        <MudItem xs="12" sm="6" md="4">
-            <MudPaper Elevation="2" Class="pa-4" Style="height: 200px;"></MudPaper>
+        <!-- Actions -->
+        <MudItem xs="12" sm="6" md="6">
+            <MudPaper Elevation="2" Class="pa-4" Style="height: 200px;">
+                <MudText Typo="Typo.h5">Actions</MudText>
+
+                @if (_loggedIn)
+                {
+                    <!-- Authenticated -->
+                    @if (_isCandidate)
+                    {
+                        <MudText>Logged in as candidate or admin</MudText>
+                    }
+
+                    if (_isCompany)
+                    {
+                        <MudText>Logged in as company or admin</MudText>
+                    }
+
+                    <MudList>
+                        <MudItem>
+                            <MudButton Href="/logout">
+                                <ChildContent>
+                                    <MudIcon Icon="@Icons.Material.Filled.ExitToApp" Class="mr-1" />
+                                    <MudText Typo="Typo.button" Color="Color.Inherit">Logout</MudText>
+                                </ChildContent>
+                            </MudButton>
+                        </MudItem>
+                    </MudList>
+                }
+                else
+                {
+                    <!-- Not authenticated -->
+                    <MudList>
+                        <MudItem>
+                            <MudButton Href="/login">
+                                <ChildContent>
+                                    <MudIcon Icon="@Icons.Material.Filled.ExitToApp" Class="mr-1" />
+                                    <MudText Typo="Typo.button" Color="Color.Inherit">Login</MudText>
+                                </ChildContent>
+                            </MudButton>
+                        </MudItem>
+
+                        <MudItem>
+                            <MudButton Href="/register">
+                                <ChildContent>
+                                    <MudIcon Icon="@Icons.Material.Filled.PersonAdd" Class="mr-1" />
+                                    <MudText Typo="Typo.button" Color="Color.Inherit">Register</MudText>
+                                </ChildContent>
+                            </MudButton>
+                        </MudItem>
+                    </MudList>
+                }
+            </MudPaper>
         </MudItem>
-        <MudItem xs="12" sm="6" md="4">
-            <MudPaper Elevation="2" Class="pa-4" Style="height: 200px;"></MudPaper>
+
+        <MudItem xs="12" sm="6" md="6">
+            <MudPaper Elevation="2" Class="pa-4" Style="height: 200px;">
+                <MudText Typo="Typo.h5">My Applications</MudText>
+                <MudButton Href="/login">
+                    <ChildContent>
+                        <MudIcon Icon="@Icons.Material.Filled.ExitToApp" Class="mr-1" />
+                        <MudText Typo="Typo.button" Color="Color.Inherit">Login</MudText>
+                    </ChildContent>
+                </MudButton>
+
+                <MudButton Href="/register">
+                    <ChildContent>
+                        <MudIcon Icon="@Icons.Material.Filled.PersonAdd" Class="mr-1" />
+                        <MudText Typo="Typo.button" Color="Color.Inherit">Register</MudText>
+                    </ChildContent>
+                </MudButton>
+            </MudPaper>
         </MudItem>
-        <MudItem xs="12" sm="12" md="4">
-            <MudPaper Elevation="2" Class="pa-4" Style="height: 200px;"></MudPaper>
-        </MudItem>
-        <MudItem xs="12" sm="6">
-            <MudGrid>
-                <MudItem xs="12">
-                    <MudPaper Elevation="2" Class="pa-4" Style="height: 200px;"></MudPaper>
-                </MudItem>
-                <MudItem xs="12">
-                    <MudPaper Elevation="2" Class="pa-4" Style="height: 200px;"></MudPaper>
-                </MudItem>
-            </MudGrid>
-        </MudItem>
-        <MudItem xs="12" sm="6">
-            <MudPaper Elevation="2" Class="pa-4" Style="height: 100%"></MudPaper>
-        </MudItem>
-        <MudItem xs="12" sm="6" md="4">
-            <MudPaper Elevation="2" Class="pa-4" Style="height: 200px;"></MudPaper>
-        </MudItem>
-        <MudItem xs="12" sm="6" md="4">
-            <MudPaper Elevation="2" Class="pa-4" Style="height: 200px;"></MudPaper>
-        </MudItem>
-        <MudItem xs="12" sm="12" md="4">
-            <MudPaper Elevation="2" Class="pa-4" Style="height: 200px;"></MudPaper>
+
+        @if (_isCompany)
+        {
+            <!-- Company Active Job Postings -->
+            <MudItem xs="12" sm="12" md="12">
+                <MudPaper Elevation="2" Class="pa-4" Style="height: 200px;">
+                    <MudText Typo="Typo.h5">Active Job Postings</MudText>
+                    <MudIconButton Href="/employer-dashboard" Icon="@Icons.Material.Filled.Business" />
+                    <MudText Href="/employer-dashboard" Text="Employer Dashboard" Typo="Typo.subtitle1" Color="Color.Inherit" />
+
+                    <MudIconButton Href="/create-job" Icon="@Icons.Material.Filled.PostAdd" />
+                    <MudText Href="/create-job" Text="Create Job Listing" Typo="Typo.subtitle1" Color="Color.Inherit" />
+                </MudPaper>
+            </MudItem>
+        }
+
+        <!-- Latest Jobs -->
+        <MudItem xs="12" sm="12">
+            <MudPaper Elevation="2" Class="pa-4" Style="height: 200px;">
+                <MudText Typo="Typo.h5">Latest jobs</MudText>
+                <!-- Add content for latest jobs -->
+            </MudPaper>
         </MudItem>
     </MudGrid>
 </MudContainer>
+
+@inject TokenAuthStateProvider TokenAuthStateProvider
+
+@code {
+    bool _loggedIn = false;
+    string _userId;
+    string _userRole;
+
+    bool _isCompany = false;
+    bool _isCandidate = false;
+    bool _isAdmin = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await TokenAuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        _loggedIn = authState.User.Identity.IsAuthenticated;
+
+        if (_loggedIn)
+        {
+            _userId = user.Identity.Name;
+            _userRole = user.FindFirst("role")?.Value ?? "candidate";
+
+            if (_userRole == "company")
+            {
+                _isCompany = true;
+            }
+            else if (_userRole == "candidate")
+            {
+                _isCandidate = true;
+            }
+            else if (_userRole == "admin")
+            {
+                _isCompany = true;
+                _isCandidate = true;
+                _isAdmin = true;
+            }
+        }
+    }
+}
