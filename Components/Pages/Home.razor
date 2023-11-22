@@ -1,10 +1,12 @@
 ﻿@page "/"
 @using Microsoft.AspNetCore.Components.Authorization
+@using job_board.Components.Dialogs
 @using job_board.Utilities
 @using job_board.Models;
 
 @inject TokenAuthStateProvider TokenAuthStateProvider
 @inject IHttpClientFactory ClientFactory
+@inject IDialogService DialogService
 
 <PageTitle>Home</PageTitle>
 
@@ -117,7 +119,7 @@
                         @foreach (var ad in LatestJobs)
                         {
                             <MudDivider />
-                            <MudListItem>
+                            <MudListItem @onclick="(e) => OpenAdDialog(ad)">
                                 <MudText Typo="Typo.h6">@ad.Title</MudText>
                                     <MudText>@ad.Company.CompanyName | @ad.Location</MudText>
                                     <MudSpacer />
@@ -190,5 +192,13 @@
             //LatestJobs.RemoveRange(7, LatestJobs.Count - 7);
         }
         _retrievingJobs = false;
+    }
+
+    private void OpenAdDialog(Ad selectedAd)
+    {
+        var parameters = new DialogParameters<HomeAdDialog>();
+        parameters.Add("Ad", selectedAd);
+        var options = new DialogOptions { CloseOnEscapeKey = true };
+        DialogService.Show<HomeAdDialog>(selectedAd.Title, parameters, options);
     }
 }

@@ -1,0 +1,42 @@
+﻿@using job_board.Models;
+
+<MudDialog>
+    <DialogContent>
+        <MudText>@Ad.Description</MudText>
+        <br />
+        <MudDivider />
+        <br />
+        <MudGrid>
+            <MudItem xs="12" sm="6">
+                <MudText Typo="Typo.h6">Contact</MudText>
+                <MudText Typo="Typo.subtitle1">@Ad.Company.CompanyName</MudText>
+                <MudText Typo="Typo.subtitle1">@Ad.Company.Email</MudText>
+                <MudLink Href="@Ad.Company.Website">Open Website</MudLink>
+             </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudText Typo="Typo.h6">Salary</MudText>
+                <MudText Typo="Typo.subtitle1" Style="@($"color:{Colors.Green.Darken4};")">€@Ad.SalaryFrom - €@Ad.SalaryTo</MudText>
+                <MudText Typo="Typo.h6">Location</MudText>
+                <MudText Typo="Typo.subtitle1">@Ad.Location</MudText>
+            </MudItem>
+        </MudGrid>
+        <br />
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Close">Close</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Submit">Apply</MudButton>
+    </DialogActions>
+</MudDialog>
+
+    @code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+    [Parameter] public Ad Ad { get; set; }
+
+    void Submit()
+    {
+        // TODO: redirect to application creation IF logged in (otherwise redirect to login), if not an employee or admin then show error
+        MudDialog.Close(DialogResult.Ok(true));
+    }
+
+    void Close() => MudDialog.Cancel();
+}

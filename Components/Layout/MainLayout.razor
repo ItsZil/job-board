@@ -7,7 +7,7 @@
 <MudLayout>
     <MudAppBar Elevation="1">
         <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
-        <MudText Typo="Typo.h5" Class="ml-3">Job Board</MudText>
+        <MudButton Variant="Variant.Text" Class="ml-3" Href="/"><MudText Typo="Typo.h5" Color="Color.Tertiary">Job Board</MudText></MudButton>
         <MudSpacer />
         <div>
             <MudContainer>
@@ -52,6 +52,7 @@
     <MudMainContent>
         @Body
     </MudMainContent>
+    <Footer />
 </MudLayout>
 
 @code {
