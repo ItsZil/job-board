@@ -9,10 +9,12 @@
         <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
         <MudText Typo="Typo.h5" Class="ml-3">Job Board</MudText>
         <MudSpacer />
-        <div class="d-flex">
-            <MudIconButton Icon="@Icons.Material.Filled.AccountCircle" Color="Color.Inherit" Size="Size.Large" OnClick="@ToggleAccountOpen" />
-            <MudPopover Open="@_accountMenuOpen" AnchorOrigin="Origin.BottomCenter" TransformOrigin="Origin.TopCenter">
-                @{
+        <div>
+            <MudContainer>
+                <MudAvatar>
+                    <MudIconButton Icon="@Icons.Material.Filled.AccountCircle" Color="Color.Inherit" Size="Size.Large" OnClick="@ToggleAccountOpen" />
+                </MudAvatar>
+                <MudPopover Open="@_accountMenuOpen" AnchorOrigin="Origin.BottomCenter" TransformOrigin="Origin.TopCenter">
                     @if (_loggedIn)
                     {
                         <MudButton Href="/logout">
@@ -40,8 +42,8 @@
                             </MudButton>
                         </div>
                     }
-                }
-            </MudPopover>
+                </MudPopover>
+            </MudContainer>
         </div>
     </MudAppBar>
     <MudDrawer @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="2">

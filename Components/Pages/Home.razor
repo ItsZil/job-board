@@ -1,6 +1,10 @@
 ﻿@page "/"
 @using Microsoft.AspNetCore.Components.Authorization
 @using job_board.Utilities
+@using job_board.Models;
+
+@inject TokenAuthStateProvider TokenAuthStateProvider
+@inject IHttpClientFactory ClientFactory
 
 <PageTitle>Home</PageTitle>
 
@@ -10,6 +14,10 @@
         <MudItem xs="12" sm="6" md="6">
             <MudPaper Elevation="2" Class="pa-4" Style="height: 200px;">
                 <MudText Typo="Typo.h5">Actions</MudText>
+                @if (_loggingIn)
+                {
+                    <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Medium" Class="ma-4" />
+                }
 
                 @if (_loggedIn)
                 {
@@ -35,7 +43,7 @@
                         </MudItem>
                     </MudList>
                 }
-                else
+                else if (!_loggingIn)
                 {
                     <!-- Not authenticated -->
                     <MudList>
@@ -97,24 +105,44 @@
 
         <!-- Latest Jobs -->
         <MudItem xs="12" sm="12">
-            <MudPaper Elevation="2" Class="pa-4" Style="height: 200px;">
-                <MudText Typo="Typo.h5">Latest jobs</MudText>
-                <!-- Add content for latest jobs -->
+            <MudPaper Elevation="2" Class="pa-4; overflow-auto" Height="70vh">
+                <MudText Typo="Typo.h5" Class="pa-4">Latest jobs</MudText>
+                @if (_retrievingJobs)
+                {
+                    <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" Class="ml-10" />
+                }
+                else 
+                {
+                    <MudList Clickable="true">
+                        @foreach (var ad in LatestJobs)
+                        {
+                            <MudDivider />
+                            <MudListItem>
+                                <MudText Typo="Typo.h6">@ad.Title</MudText>
+                                    <MudText>@ad.Company.CompanyName | @ad.Location</MudText>
+                                    <MudSpacer />
+                                    <MudText Typo="Typo.subtitle2" Style="@($"color:{Colors.Green.Darken4};")">€@ad.SalaryFrom - €@ad.SalaryTo</MudText>
+                            </MudListItem>
+                        }
+                    </MudList>
+                }
             </MudPaper>
         </MudItem>
     </MudGrid>
 </MudContainer>
 
-@inject TokenAuthStateProvider TokenAuthStateProvider
-
 @code {
     bool _loggedIn = false;
+    bool _loggingIn = true;
     string _userId;
     string _userRole;
 
     bool _isCompany = false;
     bool _isCandidate = false;
     bool _isAdmin = false;
+
+    List<Ad> LatestJobs = new List<Ad>();
+    bool _retrievingJobs = true;
 
     protected override async Task OnInitializedAsync()
     {
@@ -142,5 +170,25 @@
                 _isAdmin = true;
             }
         }
+        _loggingIn = false;
+
+
+        var client = ClientFactory.CreateClient("httpClient");
+        // Latest job postings
+        var allCompanies = await client.GetFromJsonAsync<List<Company>>("api/companies");
+        if (allCompanies != null)
+        {
+            foreach (var company in allCompanies)
+            {
+                var companyAds = await client.GetFromJsonAsync<List<Ad>>($"api/companies/{company.Id}/ads");
+                if (companyAds != null)
+                {
+                    LatestJobs.AddRange(companyAds);
+                }
+            }
+            LatestJobs.Sort((a, b) => b.PostedDate.CompareTo(a.PostedDate));
+            //LatestJobs.RemoveRange(7, LatestJobs.Count - 7);
+        }
+        _retrievingJobs = false;
     }
 }
