@@ -1,0 +1,164 @@
+﻿@page "/Jobs"
+@using Microsoft.AspNetCore.Components.Authorization
+@using job_board.Components.Dialogs
+@using job_board.Utilities
+@using job_board.Models;
+
+@inject TokenAuthStateProvider TokenAuthStateProvider
+@inject IHttpClientFactory ClientFactory
+@inject IDialogService DialogService
+
+<PageTitle>Jobs</PageTitle>
+
+<MudContainer Class="mt-16 px-8" MaxWidth="MaxWidth.False">
+    <MudItem xs="6" sm="6" Class="pb-4">
+        <MudPaper Elevation="2" Class="pa-6"><MudText Typo="Typo.h5">Filter</MudText>
+            @if (_retrievingJobs)
+            {
+                <MudProgressLinear Color="Color.Primary" Indeterminate="true" Size="Size.Small" Class="mt-5" />
+            }
+            else
+            {
+                <MudSelect Class="pb-4 pt-1" T="string" MultiSelection="true" SelectAll="true" SelectAllText="Select all companies" @bind-SelectedValues="_selectedCompanies" MultiSelectionTextFunc="@(new Func<List<string>, string>(GetCompanyMultiSelectionText))"  Label="Companies" AdornmentIcon="@Icons.Material.Filled.BusinessCenter">
+                    @foreach (var company in AllCompanies)
+                    {
+                        <MudSelectItem T="string" Value="@company.CompanyName">@company.CompanyName</MudSelectItem>
+                    }
+                </MudSelect>
+
+                <MudSelect Class="pb-4 pt-1" T="string" MultiSelection="true" SelectAll="true" SelectAllText="Select all locations" @bind-SelectedValues="_selectedLocations" 
+                MultiSelectionTextFunc="@(new Func<List<string>, string>(GetLocationMultiSelectionText))" Label="Locations" AdornmentIcon="@Icons.Material.Filled.Map">
+                    @foreach (var ad in LatestJobs)
+                    {
+                        <MudSelectItem T="string" Value="@ad.Location">@ad.Location</MudSelectItem>
+                    }
+                </MudSelect>
+            }
+        </MudPaper>
+    </MudItem>
+
+    <MudItem xs="12" sm="12">
+        <MudPaper Elevation="2" Class="pa-4; overflow-auto" Height="70vh">
+            <MudText Typo="Typo.h5" Class="pa-4">All jobs</MudText>
+            @if (_retrievingJobs)
+            {
+                <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" Class="ml-10" />
+            }
+            else 
+            {
+                <MudList Clickable="true">
+                    @foreach (var ad in FilteredJobs)
+                    {
+                        <MudDivider />
+                        <MudListItem @onclick="(e) => OpenAdDialog(ad)">
+                            <MudText Typo="Typo.h6">@ad.Title</MudText>
+                                <MudText>@ad.Company.CompanyName | @ad.Location</MudText>
+                                <MudSpacer />
+                                <MudText Typo="Typo.subtitle2" Style="@($"color:{Colors.Green.Darken4};")">€@ad.SalaryFrom - €@ad.SalaryTo</MudText>
+                        </MudListItem>
+                    }
+                </MudList>
+            }
+        </MudPaper>
+    </MudItem>
+</MudContainer>
+
+@code {
+    bool _loggedIn = false;
+    bool _loggingIn = true;
+    string _userId;
+    string _userRole;
+
+    bool _isCompany = false;
+    bool _isCandidate = false;
+    bool _isAdmin = false;
+
+    List<Company> AllCompanies = new List<Company>();
+    List<Ad> LatestJobs = new List<Ad>();
+    bool _retrievingJobs = true;
+
+    private IEnumerable<string> _selectedCompanies { get; set; } = new HashSet<string>() {  };
+    private IEnumerable<string> _selectedLocations { get; set; } = new HashSet<string>() {  };
+
+    private List<Ad> _filteredJobs;
+
+    List<Ad> FilteredJobs
+    {
+        get
+        {
+            return LatestJobs.Where(ad => _selectedCompanies.Contains(ad.Company.CompanyName) && _selectedLocations.Contains(ad.Location)).ToList();
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await TokenAuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        _loggedIn = authState.User.Identity.IsAuthenticated;
+
+        if (_loggedIn)
+        {
+            _userId = user.Identity.Name;
+            _userRole = user.FindFirst("role")?.Value ?? "candidate";
+
+            if (_userRole == "company")
+            {
+                _isCompany = true;
+            }
+            else if (_userRole == "candidate")
+            {
+                _isCandidate = true;
+            }
+            else if (_userRole == "admin")
+            {
+                _isCompany = true;
+                _isCandidate = true;
+                _isAdmin = true;
+            }
+        }
+        _loggingIn = false;
+
+
+        var client = ClientFactory.CreateClient("httpClient");
+        // Latest job postings
+        AllCompanies = await client.GetFromJsonAsync<List<Company>>("api/companies");
+        _selectedCompanies = AllCompanies.Select(c => c.CompanyName).ToList();
+        if (AllCompanies != null)
+        {
+            foreach (var company in AllCompanies)
+            {
+                var companyAds = await client.GetFromJsonAsync<List<Ad>>($"api/companies/{company.Id}/ads");
+                if (companyAds != null)
+                {
+                    LatestJobs.AddRange(companyAds);
+                }
+            }
+            LatestJobs.Sort((a, b) => b.PostedDate.CompareTo(a.PostedDate));
+            _selectedLocations = LatestJobs.Select(ad => ad.Location).ToList();
+            //LatestJobs.RemoveRange(7, LatestJobs.Count - 7);
+        }
+        _retrievingJobs = false;
+    }
+
+    private void OpenAdDialog(Ad selectedAd)
+    {
+        var parameters = new DialogParameters<HomeAdDialog>();
+        parameters.Add("Ad", selectedAd);
+        parameters.Add("LoggedIn", _loggedIn);
+        parameters.Add("IsCandidate", _isCandidate);
+        var options = new DialogOptions { CloseOnEscapeKey = true };
+        DialogService.Show<HomeAdDialog>(selectedAd.Title, parameters, options);
+    }
+
+    private string GetCompanyMultiSelectionText(List<string> selectedValues)
+    {
+        StateHasChanged();
+        return $"{selectedValues.Count} compan{(selectedValues.Count > 1 ? "ies" : "y")} selected";
+    }
+
+    private string GetLocationMultiSelectionText(List<string> selectedValues)
+    {
+        StateHasChanged();
+        return $"{selectedValues.Count} locatio{(selectedValues.Count > 1 ? "ns" : "n")} selected";
+    }
+}

@@ -107,7 +107,7 @@
 
         <!-- Latest Jobs -->
         <MudItem xs="12" sm="12">
-            <MudPaper Elevation="2" Class="pa-4; overflow-auto" Height="70vh">
+            <MudPaper Elevation="2" Class="pa-4; overflow-auto" Height="90vh">
                 <MudText Typo="Typo.h5" Class="pa-4">Latest jobs</MudText>
                 @if (_retrievingJobs)
                 {
@@ -198,6 +198,8 @@
     {
         var parameters = new DialogParameters<HomeAdDialog>();
         parameters.Add("Ad", selectedAd);
+        parameters.Add("LoggedIn", _loggedIn);
+        parameters.Add("IsCandidate", _isCandidate);
         var options = new DialogOptions { CloseOnEscapeKey = true };
         DialogService.Show<HomeAdDialog>(selectedAd.Title, parameters, options);
     }
