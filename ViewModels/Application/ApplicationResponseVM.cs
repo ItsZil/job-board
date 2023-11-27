@@ -6,5 +6,6 @@
         public int AdId { get; set; }
         public DateTime ApplicationDate { get; set; }
         public string? CoverLetter { get; set; }
+        public string PhoneNumber { get; set; }
     }
 }

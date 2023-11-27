@@ -46,7 +46,7 @@
                             <MudText Typo="Typo.h6">@company.CompanyName</MudText>
                                 <MudText>@company.Industry</MudText>
                                 <MudSpacer />
-                                <MudText Typo="Typo.subtitle2">Job listings: @AllJobs.Where(a => a.Company.Email == company.Email).Count()</MudText>
+                                <MudText Style="color:gray" Typo="Typo.subtitle2">Job listings: @AllJobs.Where(a => a.Company.Email == company.Email).Count()</MudText>
                         </MudListItem>
                     }
                 </MudList>

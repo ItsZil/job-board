@@ -1,5 +1,5 @@
 ﻿@using job_board.Models;
-
+@using job_board.ViewModels.Application
 @inject NavigationManager Navigate
 
 <MudDialog>
@@ -21,37 +21,31 @@
                 <MudText Typo="Typo.h6">Location</MudText>
                 <MudText Typo="Typo.subtitle1">@Ad.Location</MudText>
             </MudItem>
+            @if (Application.CoverLetter != null && Application.CoverLetter != string.Empty)
+            {
+                <MudDivider />
+                <MudItem xs="12" sm="12">
+                    <MudText Typo="Typo.h6">Application</MudText>
+                    <MudText Typo="Typo.subtitle1" Style="font-weight: bold">Cover Letter</MudText>
+                    <MudText Typo="Typo.subtitle1">@Application.CoverLetter</MudText>
+                    <MudDivider Class="mt-2 mb-2" />
+                    <MudText Typo="Typo.subtitle1" Style="font-weight: bold">Phone Number</MudText>
+                    <MudText Typo="Typo.subtitle1">@Application.PhoneNumber</MudText>
+                </MudItem>
+            }
         </MudGrid>
-        <br />
-        @if (_error)
-        {
-            <MudAlert Severity="Severity.Error" IsOpen="true" Class="pt-4 pb-4">@_errorText</MudAlert>
-        }
     </DialogContent>
     <DialogActions>
         <MudButton OnClick="Close">Close</MudButton>
-        <MudButton Color="Color.Primary" OnClick="Apply">Apply</MudButton>
     </DialogActions>
 </MudDialog>
 
 @code {
     [CascadingParameter] MudDialogInstance MudDialog { get; set; }
     [Parameter] public Ad Ad { get; set; }
+    [Parameter] public ApplicationResponseVM Application { get; set; }
     [Parameter] public bool LoggedIn { get; set; }
     [Parameter] public bool IsCandidate { get; set; }
-
-    bool _error = false;
-    string _errorText = "You must be logged in as a candidate to apply for a job.";
-
-    void Apply()
-    {
-        if (!LoggedIn || !IsCandidate)
-        {
-            _error = true;
-            return;
-        }
-        Navigate.NavigateTo($"/apply/{Ad.Company.Id}/{Ad.Id}");
-    }
 
     void Close() => MudDialog.Cancel();
 }

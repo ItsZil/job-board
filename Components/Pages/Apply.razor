@@ -12,7 +12,7 @@
 @inject IHttpClientFactory ClientFactory
 @inject IDialogService DialogService
 
-<PageTitle>Application</PageTitle>
+<PageTitle>New Application</PageTitle>
 
 <MudContainer Class="mt-16 px-8">
     <MudGrid>
@@ -26,7 +26,7 @@
             }
             else if (_adNotFound && !_loading)
             {
-                <MudText Typo="Typo.h5">Ad not found</MudText>
+                <MudText Typo="Typo.h5">Ad not found.</MudText>
             }
             else
             {
@@ -112,6 +112,8 @@
         if (response == null || response.StatusCode != System.Net.HttpStatusCode.OK)
         {
             _adNotFound = true;
+            await DialogService.ShowMessageBox("Error", "A job with the specified company or ID was not found.");
+            Navigate.NavigateTo("/jobs");
         }
         else
         {
@@ -137,6 +139,7 @@
                 }
                 _loading = false;
             }
+            StateHasChanged();
         }
     }
 

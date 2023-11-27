@@ -1,9 +1,7 @@
 ﻿using job_board.Models;
 using job_board.Utilities;
-using job_board.ViewModels;
 using job_board.ViewModels.Application;
 using job_board.ViewModels.Candidate;
-using job_board.ViewModels.CandidateVM;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -48,6 +46,8 @@ namespace job_board.Controllers
                     .Include(a => a.Candidate)
                     .Include(a => a.Ad)
                     .Where(a => a.Candidate.Id == AuthHelper.GetUserId(User))
+                    .Where(a => a.Ad.Id == adId)
+                    .Where(a => a.Ad.Company.Id == companyId)
                     .AsSplitQuery()
                     .ToList();
 
@@ -59,7 +59,8 @@ namespace job_board.Controllers
                         Id = app.Id,
                         AdId = app.Ad.Id,
                         ApplicationDate = app.ApplicationDate,
-                        CoverLetter = app.CoverLetter
+                        CoverLetter = app.CoverLetter,
+                        PhoneNumber = app.Candidate.Phone
                     };
                     applicationResponses.Add(applicationResponse);
                 }
@@ -208,7 +209,7 @@ namespace job_board.Controllers
                 var response = new {
                     candidateApplication.Id,
                     candidateApplication.CoverLetter,
-                    candidateApplication.ApplicationDate,
+                    candidateApplication.ApplicationDate
                 };
                 return Created(string.Empty, response);
             }

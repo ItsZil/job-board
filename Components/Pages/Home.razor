@@ -1,4 +1,4 @@
-ï»¿@page "/"
+@page "/"
 @using Microsoft.AspNetCore.Components.Authorization
 @using job_board.Components.Dialogs
 @using job_board.Utilities
@@ -14,8 +14,8 @@
     <MudGrid>
         <!-- Actions -->
         <MudItem xs="12" sm="6" md="6">
-            <MudPaper Elevation="2" Class="pa-4" Height="15vh">
-                <MudText Typo="Typo.h5">Actions</MudText>
+            <MudPaper Elevation="2" Class="pa-4" Height="13vh">
+                <MudText Class="mb-2" Typo="Typo.h5">Actions</MudText>
                 @if (_loggingIn)
                 {
                     <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Medium" Class="ma-4" />
@@ -26,12 +26,22 @@
                     <!-- Authenticated -->
                     @if (_isCandidate)
                     {
-                        <MudText>Logged in as candidate or admin</MudText>
+                        <MudButton Href="/create-job">
+                            <ChildContent>
+                                <MudIcon Icon="@Icons.Material.Filled.PostAdd" Class="mr-1" />
+                                <MudText Typo="Typo.button" Color="Color.Inherit">Create job posting</MudText>
+                            </ChildContent>
+                        </MudButton>
                     }
 
                     if (_isCompany)
                     {
-                        <MudText>Logged in as company or admin</MudText>
+                        <MudButton Href="/create-job">
+                            <ChildContent>
+                                <MudIcon Icon="@Icons.Material.Filled.PostAdd" Class="mr-1" />
+                                <MudText Typo="Typo.button" Color="Color.Inherit">Create job posting</MudText>
+                            </ChildContent>
+                        </MudButton>
                     }
 
                     <MudList>
@@ -72,73 +82,62 @@
         </MudItem>
 
         <MudItem xs="12" sm="6" md="6">
-            <MudPaper Elevation="2" Class="pa-4" Height="15vh">
-                @if (_loggingIn)
-                {
-                    <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Medium" Class="ma-4 mt-10" />
-                }
+            <MudPaper Elevation="2" Class="pa-4" Height="10vh">
+                <!-- Random office photo image carousel -->
 
-                @if (_isCandidate)
-                {
-                <MudText Typo="Typo.h5">My Applications</MudText>
-                <MudButton Href="/login">
-                    <ChildContent>
-                        <MudIcon Icon="@Icons.Material.Filled.ExitToApp" Class="mr-1" />
-                        <MudText Typo="Typo.button" Color="Color.Inherit">Login</MudText>
-                    </ChildContent>
-                </MudButton>
-
-                <MudButton Href="/register">
-                    <ChildContent>
-                        <MudIcon Icon="@Icons.Material.Filled.PersonAdd" Class="mr-1" />
-                        <MudText Typo="Typo.button" Color="Color.Inherit">Register</MudText>
-                    </ChildContent>
-                </MudButton>
-                }
             </MudPaper>
         </MudItem>
 
         @if (_isCompany)
         {
-            <!-- Company Active Job Postings -->
-            <MudItem xs="12" sm="12" md="12">
-                <MudPaper Elevation="2" Class="pa-4" Style="height: 40vh">
-                    <MudText Typo="Typo.h5">Your job postings</MudText>
-                    <MudIconButton Href="/employer-dashboard" Icon="@Icons.Material.Filled.Business" />
-                    <MudText Href="/employer-dashboard" Text="Employer Dashboard" Typo="Typo.subtitle1" Color="Color.Inherit" />
-
-                    <MudIconButton Href="/create-job" Icon="@Icons.Material.Filled.PostAdd" />
-                    <MudText Href="/create-job" Text="Create Job Listing" Typo="Typo.subtitle1" Color="Color.Inherit" />
+            <!-- Company Applications -->
+            <MudItem xs="12" sm="12">
+                <MudPaper Elevation="2" Class="pa-4; overflow-auto" Height="90vh">
+                    <MudText Typo="Typo.h5" Class="pa-4">Received Applications</MudText>
+                    <MudList Clickable="true">
+                    <!--@foreach (var application in AllApplications)
+                        {
+                            <MudDivider />
+                            <MudListItem @onclick="(e) => OpenApplicationViewDialog(AllAds.Where(a => a.Id == application.AdId).FirstOrDefault(), application)">
+                                <MudText Typo="Typo.h6">@AllAds.Where(a => a.Id == application.AdId).FirstOrDefault().Title</MudText>
+                                    <MudText> @AllAds.Where(a => a.Id == application.AdId).FirstOrDefault().Company.CompanyName </MudText>
+                                    <MudSpacer />
+                                    <MudText Style="color:gray" Typo="Typo.subtitle2">Application Date: @application.ApplicationDate</MudText>
+                                </MudListItem>
+                        } -->
+                    </MudList>
                 </MudPaper>
             </MudItem>
         }
-
-        <!-- Latest Jobs -->
-        <MudItem xs="12" sm="12">
-            <MudPaper Elevation="2" Class="pa-4; overflow-auto" Height="90vh">
-                <MudText Typo="Typo.h5" Class="pa-4">Latest jobs</MudText>
-                @if (_retrievingJobs)
-                {
-                    <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" Class="ml-10" />
-                }
-                else 
-                {
-                    <MudList Clickable="true">
-                        @foreach (var ad in LatestJobs)
-                        {
-                            <MudDivider />
-                            <MudListItem @onclick="(e) => OpenAdDialog(ad)">
-                                <MudText Typo="Typo.h6">@ad.Title</MudText>
-                                    <MudText>@ad.Company.CompanyName | @ad.Location</MudText>
-                                    <MudSpacer />
-                                    <MudText Typo="Typo.subtitle2" Style="@($"color:{Colors.Green.Darken4};")">â‚¬@ad.SalaryFrom - â‚¬@ad.SalaryTo</MudText>
-                                    <MudText Typo="Typo.body2">Posted: @ad.PostedDate</MudText>
-                            </MudListItem>
-                        }
-                    </MudList>
-                }
-            </MudPaper>
-        </MudItem>
+        else
+        {
+            <!-- Latest Jobs -->
+            <MudItem xs="12" sm="12">
+                <MudPaper Elevation="2" Class="pa-4; overflow-auto" Height="90vh">
+                    <MudText Typo="Typo.h5" Class="pa-4">Latest jobs</MudText>
+                    @if (_retrievingJobs)
+                    {
+                        <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" Class="ml-10" />
+                    }
+                    else
+                    {
+                        <MudList Clickable="true">
+                            @foreach (var ad in LatestJobs)
+                            {
+                                <MudDivider />
+                                <MudListItem @onclick="(e) => OpenAdDialog(ad)">
+                                    <MudText Typo="Typo.h6">@ad.Title</MudText>
+                                        <MudText>@ad.Company.CompanyName | @ad.Location</MudText>
+                                        <MudSpacer />
+                                        <MudText Typo="Typo.subtitle2" Style="@($"color:{Colors.Green.Darken4};")">€@ad.SalaryFrom - €@ad.SalaryTo</MudText>
+                                        <MudText Style="color:gray" Typo="Typo.body2">Posted: @ad.PostedDate</MudText>
+                                    </MudListItem>
+                            }
+                        </MudList>
+                    }
+                </MudPaper>
+            </MudItem>
+        }
     </MudGrid>
 </MudContainer>
 

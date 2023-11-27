@@ -8,8 +8,9 @@
 @inject TokenAuthStateProvider TokenAuthStateProvider
 @inject IHttpClientFactory ClientFactory
 @inject IDialogService DialogService
+@inject NavigationManager Navigate
 
-<PageTitle>Jobs</PageTitle>
+<PageTitle>Applications</PageTitle>
 
 <MudContainer Class="mt-16 px-8" MaxWidth="MaxWidth.False">
     <MudItem xs="12" sm="12">
@@ -23,24 +24,35 @@
             else @if (_isCandidate)
             {
                 <MudText Typo="Typo.h5" Class="pa-4">My Applications</MudText>
+                <MudList Clickable="true">
+                    @foreach (var application in AllApplications)
+                    {
+                        <MudDivider />
+                        <MudListItem @onclick="(e) => OpenApplicationViewDialog(AllAds.Where(a => a.Id == application.AdId).FirstOrDefault(), application)">
+                            <MudText Typo="Typo.h6">@AllAds.Where(a => a.Id == application.AdId).FirstOrDefault().Title</MudText>
+                            <MudText> @AllAds.Where(a => a.Id == application.AdId).FirstOrDefault().Company.CompanyName </MudText>
+                            <MudSpacer />
+                            <MudText Style="color:gray" Typo="Typo.subtitle2">Application Date: @application.ApplicationDate</MudText>
+                        </MudListItem>
+                    }
+                </MudList>
             }
             else
             {
                 <MudText Typo="Typo.h5" Class="pa-4">Received Applications</MudText>
-            }
-
-            <MudList Clickable="true">
-                @foreach (var application in AllApplications)
-                {
-                    <MudDivider />
-                    <MudListItem>
-                        <MudText Typo="Typo.h6">Application ID: @application.Id</MudText>
-                            <MudText>Ad: @AllAds.Where(a => a.Id == application.AdId).FirstOrDefault().Title</MudText>
+                <MudList Clickable="true">
+                    @foreach (var application in AllApplications)
+                    {
+                        <MudDivider />
+                        <MudListItem @onclick="(e) => OpenApplicationViewDialog(AllAds.Where(a => a.Id == application.AdId).FirstOrDefault(), application)">
+                            <MudText Typo="Typo.h6">@AllAds.Where(a => a.Id == application.AdId).FirstOrDefault().Title</MudText>
+                            <MudText> @AllAds.Where(a => a.Id == application.AdId).FirstOrDefault().Company.CompanyName </MudText>
                             <MudSpacer />
-                            <MudText Typo="Typo.subtitle2">Application Date: @application.ApplicationDate.ToString("yyyy-MM-dd")</MudText>
+                            <MudText Style="color:gray" Typo="Typo.subtitle2">Application Date: @application.ApplicationDate</MudText>
                         </MudListItem>
-                }
-            </MudList>
+                    }
+                </MudList>
+            }
         </MudPaper>
     </MudItem>
 </MudContainer>
@@ -90,6 +102,10 @@
                 _isAdmin = true;
             }
         }
+        else
+        {
+            Navigate.NavigateTo("/login");
+        }
         _loggingIn = false;
     }
 
@@ -117,18 +133,25 @@
             {
                 AllApplications.AddRange(applicationList);
             }
+            AllApplications = AllApplications.OrderByDescending(a => a.ApplicationDate).ToList();
             _retrievingApplications = false;
             StateHasChanged();
         }
     }
 
-    private void OpenAdDialog(Ad selectedAd)
+    private void OpenApplicationViewDialog(Ad selectedAd, ApplicationResponseVM application)
     {
-        var parameters = new DialogParameters<HomeAdDialog>();
+        if (application.CoverLetter == null || application.CoverLetter == string.Empty)
+        {
+            application.CoverLetter = "N/A";
+        }
+
+        var parameters = new DialogParameters<ApplicationViewDialog>();
         parameters.Add("Ad", selectedAd);
+        parameters.Add("Application", application);
         parameters.Add("LoggedIn", _loggedIn);
         parameters.Add("IsCandidate", _isCandidate);
         var options = new DialogOptions { CloseOnEscapeKey = true };
-        DialogService.Show<HomeAdDialog>(selectedAd.Title, parameters, options);
+        DialogService.Show<ApplicationViewDialog>(selectedAd.Title, parameters, options);
     }
 }
