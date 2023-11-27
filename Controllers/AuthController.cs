@@ -82,6 +82,11 @@ namespace job_board.Controllers
                     .Where(c => c.Email == loginData.Email)
                     .FirstOrDefaultAsync();
 
+                if (company == null)
+                {
+                    return NotFound("Account not found.");
+                }
+
                 userId = company.Id;
                 salt = company.Salt;
                 hashedPassword = company.Password;
