@@ -3,6 +3,7 @@
 @using job_board.Components.Dialogs
 @using job_board.Utilities
 @using job_board.Models;
+@using job_board.ViewModels.Application
 
 @inject TokenAuthStateProvider TokenAuthStateProvider
 @inject IHttpClientFactory ClientFactory
@@ -13,29 +14,27 @@
 <MudContainer Class="mt-16 px-8" MaxWidth="MaxWidth.False">
     <MudItem xs="12" sm="12">
         <MudPaper Elevation="2" Class="pa-4; overflow-auto" Height="70vh">
-            @if (_isCandidate)
+            @if (_retrievingApplications)
+            {
+                <MudContainer Class="d-flex flex-column justify-content-center align-items-center">
+                    <MudProgressLinear Color="Color.Primary" Indeterminate="true" Size="Size.Medium" Class="ml-10 mt-10" />
+                </MudContainer>
+            }
+            else @if (_isCandidate)
             {
                 <MudText Typo="Typo.h5" Class="pa-4">My Applications</MudText>
-                @if (_retrievingApplications)
-                {
-                    <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" Class="ml-10" />
-                }
-                else 
-                {
-                    <MudList Clickable="true">
-                        @foreach (var ad in AllJobs)
-                        {
-                            <MudDivider />
-                            <MudListItem @onclick="(e) => OpenAdDialog(ad)">
-                                <MudText Typo="Typo.h6">@ad.Title</MudText>
-                                    <MudText>@ad.Company.CompanyName | @ad.Location</MudText>
-                                    <MudSpacer />
-                                    <MudText Typo="Typo.subtitle2" Style="@($"color:{Colors.Green.Darken4};")">€@ad.SalaryFrom - €@ad.SalaryTo</MudText>
-                                    <MudText Typo="Typo.subtitle2">Posted: @ad.PostedDate</MudText>
-                            </MudListItem>
-                        }
-                    </MudList>
-                }
+                <MudList Clickable="true">
+                    @foreach (var application in AllApplications)
+                    {
+                        <MudDivider />
+                        <MudListItem>
+                            <MudText Typo="Typo.h6">Application ID: @application.Id</MudText>
+                            <MudText>Ad: @AllAds.Where(a => a.Id == application.AdId).FirstOrDefault().Title</MudText>
+                            <MudSpacer />
+                            <MudText Typo="Typo.subtitle2">Application Date: @application.ApplicationDate.ToString("yyyy-MM-dd")</MudText>
+                        </MudListItem>
+                    }
+                </MudList>
             }
             else
             {
@@ -48,7 +47,7 @@
 @code {
     bool _loggedIn = false;
     bool _loggingIn = true;
-    string _userId;
+    int _userId;
     string _userRole;
 
     bool _isCompany = false;
@@ -56,20 +55,23 @@
     bool _isAdmin = false;
 
     List<Company> AllCompanies = new List<Company>();
-    List<Ad> AllJobs = new List<Ad>();
-    List<Application> AllApplications = new List<Application>();
+    List<Ad> AllAds = new List<Ad>();
+    List<ApplicationResponseVM> AllApplications = new List<ApplicationResponseVM>();
 
     bool _retrievingApplications = true;
+
+    HttpClient client;
 
     protected override async Task OnInitializedAsync()
     {
         var authState = await TokenAuthStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;
         _loggedIn = authState.User.Identity.IsAuthenticated;
+        client = ClientFactory.CreateClient("httpClient");
 
         if (_loggedIn)
         {
-            _userId = user.Identity.Name;
+            _userId = int.Parse(user.FindFirst("nameid")?.Value ?? "-1");
             _userRole = user.FindFirst("role")?.Value ?? "candidate";
 
             if (_userRole == "company")
@@ -88,25 +90,31 @@
             }
         }
         _loggingIn = false;
+    }
 
-
-        var client = ClientFactory.CreateClient("httpClient");
-        // Latest job postings
-        AllCompanies = await client.GetFromJsonAsync<List<Company>>("api/companies");
-        if (AllCompanies != null)
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender && client.DefaultRequestHeaders.Authorization == null)
         {
-            foreach (var company in AllCompanies)
+            var token = await TokenAuthStateProvider.GetTokenRawAsync();
+            client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+            AllCompanies = await client.GetFromJsonAsync<List<Company>>("api/companies");
+            var adTasks = AllCompanies.Select(company => client.GetFromJsonAsync<List<Ad>>($"api/companies/{company.Id}/ads")).ToList();
+            var ads = await Task.WhenAll(adTasks);
+            foreach (var adList in ads)
             {
-                var companyAds = await client.GetFromJsonAsync<List<Ad>>($"api/companies/{company.Id}/ads");
-                if (companyAds != null)
-                {
-                    AllJobs.AddRange(companyAds);
-                }
+                AllAds.AddRange(adList);
             }
-            AllJobs.Sort((a, b) => b.PostedDate.CompareTo(a.PostedDate));
-            // stopped here
+            var applicationTasks = AllAds.Select(ad => client.GetFromJsonAsync<List<ApplicationResponseVM>>($"api/companies/{ad.Company.Id}/ads/{ad.Id}/applications")).ToList();
+            var applications = await Task.WhenAll(applicationTasks);
+            foreach (var applicationList in applications)
+            {
+                AllApplications.AddRange(applicationList);
+            }
+            _retrievingApplications = false;
+            StateHasChanged();
         }
-        _retrievingApplications = false;
     }
 
     private void OpenAdDialog(Ad selectedAd)

@@ -145,7 +145,7 @@
 @code {
     bool _loggedIn = false;
     bool _loggingIn = true;
-    string _userId;
+    int _userId;
     string _userRole;
 
     bool _isCompany = false;
@@ -163,7 +163,7 @@
 
         if (_loggedIn)
         {
-            _userId = user.Identity.Name;
+            _userId = int.Parse(user.FindFirst("nameid")?.Value ?? "-1");
             _userRole = user.FindFirst("role")?.Value ?? "candidate";
 
             if (_userRole == "company")
@@ -186,19 +186,17 @@
 
         var client = ClientFactory.CreateClient("httpClient");
         // Latest job postings
+        // Fetch all companies and their ads in parallel
         var allCompanies = await client.GetFromJsonAsync<List<Company>>("api/companies");
         if (allCompanies != null)
         {
-            foreach (var company in allCompanies)
+            var adTasks = allCompanies.Select(company => client.GetFromJsonAsync<List<Ad>>($"api/companies/{company.Id}/ads")).ToList();
+            var ads = await Task.WhenAll(adTasks);
+            foreach (var adList in ads.Where(a => a != null))
             {
-                var companyAds = await client.GetFromJsonAsync<List<Ad>>($"api/companies/{company.Id}/ads");
-                if (companyAds != null)
-                {
-                    LatestJobs.AddRange(companyAds);
-                }
+                LatestJobs.AddRange(adList);
             }
-            LatestJobs.Sort((a, b) => b.PostedDate.CompareTo(a.PostedDate));
-            //LatestJobs.RemoveRange(7, LatestJobs.Count - 7);
+            LatestJobs = LatestJobs.OrderByDescending(ad => ad.PostedDate).ToList();
         }
         _retrievingJobs = false;
     }

@@ -58,7 +58,7 @@
 @code {
     bool _loggedIn = false;
     bool _loggingIn = true;
-    string _userId;
+    int _userId;
     string _userRole;
 
     bool _isCompany = false;
@@ -88,7 +88,7 @@
 
         if (_loggedIn)
         {
-            _userId = user.Identity.Name;
+            _userId = int.Parse(user.FindFirst("nameid")?.Value ?? "-1");
             _userRole = user.FindFirst("role")?.Value ?? "candidate";
 
             if (_userRole == "company")
@@ -113,17 +113,18 @@
         // All companies
         AllCompanies = await client.GetFromJsonAsync<List<Company>>("api/companies");
         _selectedIndustries = AllCompanies.Select(c => c.Industry).ToList();
-        if (AllCompanies != null)
+        if (AllCompanies != null && AllCompanies.Any())
         {
-            foreach (var company in AllCompanies)
+            var adTasks = AllCompanies.Select(company => client.GetFromJsonAsync<List<Ad>>($"api/companies/{company.Id}/ads")).ToList();
+            var allAds = await Task.WhenAll(adTasks);
+            foreach (var companyAds in allAds)
             {
-                var companyAds = await client.GetFromJsonAsync<List<Ad>>($"api/companies/{company.Id}/ads");
                 if (companyAds != null)
                 {
                     AllJobs.AddRange(companyAds);
                 }
             }
-            _selectedIndustries = AllCompanies.Select(c => c.Industry).ToList();
+            _selectedIndustries = AllCompanies.Select(c => c.Industry).Distinct().ToList();
         }
         _retrievingCompanies = false;
     }

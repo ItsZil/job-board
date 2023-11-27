@@ -1,10 +1,13 @@
 ﻿@page "/Apply/{companyId:int}/{adId:int}"
+@using System.Text.Json;
 @using Microsoft.AspNetCore.Components.Authorization
 @using job_board.Components.Dialogs
 @using job_board.Utilities
 @using job_board.Models;
 @using job_board.ViewModels.Candidate
+@using job_board.ViewModels.Application
 
+@inject NavigationManager Navigate
 @inject TokenAuthStateProvider TokenAuthStateProvider
 @inject IHttpClientFactory ClientFactory
 @inject IDialogService DialogService
@@ -53,7 +56,7 @@
 @code {
     bool _loggedIn = false;
     bool _loggingIn = true;
-    string _userId;
+    int _userId;
     string _userRole;
 
     bool _isCompany = false;
@@ -79,7 +82,7 @@
 
         if (_loggedIn)
         {
-            _userId = user.Identity.Name;
+            _userId = int.Parse(user.FindFirst("nameid")?.Value ?? "-1");
             _userRole = user.FindFirst("role")?.Value ?? "candidate";
 
             if (_userRole == "company")
@@ -97,19 +100,22 @@
                 _isAdmin = true;
             }
         }
+        else
+        {
+            await DialogService.ShowMessageBox("Error", "You must be logged in as a candidate to apply for a job.");
+            Navigate.NavigateTo("/login");
+        }
         _loggingIn = false;
 
-
+        // Retrieve ad
         var response = await client.GetAsync($"api/companies/{companyId}/ads/{adId}");
         if (response == null || response.StatusCode != System.Net.HttpStatusCode.OK)
         {
             _adNotFound = true;
-            _loading = false;
         }
         else
         {
             _ad = await response.Content.ReadFromJsonAsync<Ad>();
-            _loading = false;
         }
     }
 
@@ -117,31 +123,42 @@
     {
         if (!firstRender && client.DefaultRequestHeaders.Authorization == null)
         {
-            var token = await TokenAuthStateProvider.GetTokenAsync();
+            var token = await TokenAuthStateProvider.GetTokenRawAsync();
             client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+            // Check if this user has already applied for this job
+            if (!_adNotFound && _ad != null && _loggedIn)
+            {
+                var applications = await client.GetFromJsonAsync<List<ApplicationResponseVM>>($"api/companies/{companyId}/ads/{adId}/applications");
+                if (applications != null && applications.Count > 0)
+                {
+                    await DialogService.ShowMessageBox("Error", "You have already applied for this job.");
+                    Navigate.NavigateTo("/applications");
+                }
+                _loading = false;
+            }
         }
     }
 
     private async Task SubmitApplication()
-     {
-         if (!_isCandidate)
-         {
-             DialogService.ShowMessageBox("Error", "You must be logged in as a candidate to apply for a job.");
-             return;
-         }
+    {
+        try
+        {
+            var response = await client.PostAsJsonAsync($"api/companies/{companyId}/ads/{adId}/applications", new { CoverLetter = _coverLetter });
 
-         try
-         {
-             var response = await client.PostAsJsonAsync($"api/companies/{companyId}/ads/{adId}/applications", new { CoverLetter = _coverLetter });
-
-             if (!response.IsSuccessStatusCode)
-             {
-                DialogService.ShowMessageBox("Error", response.StatusCode == System.Net.HttpStatusCode.Unauthorized ? "An error occurred while applying. Are you logged in as a candidate?" : "An error occurred while applying.");
-             }
-         }
+            if (!response.IsSuccessStatusCode)
+            {
+                await DialogService.ShowMessageBox("Error", response.StatusCode == System.Net.HttpStatusCode.Unauthorized ? "An error occurred while applying. Are you logged in as a candidate?" : "An error occurred while applying.");
+            }
+            else
+            {
+                 await DialogService.ShowMessageBox("Success", "You have successfully applied for this job.");
+                 Navigate.NavigateTo("/applications");
+            }
+        }
          catch (Exception ex)
          {
-             DialogService.ShowMessageBox("Error", $"An error occurred: {ex.Message}");
+             await DialogService.ShowMessageBox("Error", $"An error occurred: {ex.Message}");
          }
      }
 

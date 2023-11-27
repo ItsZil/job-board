@@ -1,9 +1,6 @@
 ﻿using Microsoft.AspNetCore.Components.Authorization;
-using Microsoft.IdentityModel.Tokens;
 using Microsoft.JSInterop;
-using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using System.Text;
 using System.Text.Json;
 
 namespace job_board.Utilities
@@ -19,6 +16,20 @@ namespace job_board.Utilities
 
         public async Task<string> GetTokenAsync()
              => await _jsRuntime.InvokeAsync<string>("localStorage.getItem", "authToken");
+
+        public async Task<string> GetTokenRawAsync()
+        {
+            string token = await GetTokenAsync();
+            JsonDocument jsonDocument = JsonDocument.Parse(token);
+            JsonElement root = jsonDocument.RootElement;
+
+            if (root.TryGetProperty("token", out JsonElement tokenElement))
+            {
+                string rawToken = tokenElement.GetString();
+                return rawToken;
+            }
+            return token;
+        }
 
         public async Task SetTokenAsync(string token, bool notifyStateChanged = true)
         {

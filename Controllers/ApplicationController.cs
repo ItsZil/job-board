@@ -28,7 +28,7 @@ namespace job_board.Controllers
 
         // GET: api/companies/{companyId}/ads/{adId}/applications
         [HttpGet]
-        [Authorize(Roles = "admin,company")]
+        [Authorize]
         public IActionResult GetAllApplications(int companyId, int adId)
         {
             if (!_dbHelper.DoesCompanyExist(companyId))
@@ -36,38 +36,69 @@ namespace job_board.Controllers
                 return NotFound("Company not found.");
             }
 
-            if (User.IsInRole("company") && User.FindFirstValue(ClaimTypes.NameIdentifier) != companyId.ToString())
-            {
-                return Forbid();
-            }
-
             if (!_dbHelper.DoesAdExist(adId))
             {
                 return NotFound("Ad not found.");
             }
-            else if (!_dbHelper.DoesCompanyAdExist(companyId, adId))
-            {
-                return Forbid();
-            }
 
-            var applications = _context.Applications
-                .Include(a => a.Candidate)
-                .Where(a => a.Ad.Company.Id == companyId && a.Ad.Id == adId)
-                .AsSplitQuery()
-                .ToList();
-
-            List<ApplicationResponseVM> applicationResponses = new List<ApplicationResponseVM>();
-            foreach (var app in applications)
+            if (User.IsInRole("candidate"))
             {
-                var applicationResponse = new ApplicationResponseVM
+                // Retrieve this candidate's applications
+                var applications = _context.Applications
+                    .Include(a => a.Candidate)
+                    .Include(a => a.Ad)
+                    .Where(a => a.Candidate.Id == AuthHelper.GetUserId(User))
+                    .AsSplitQuery()
+                    .ToList();
+
+                List<ApplicationResponseVM> applicationResponses = new List<ApplicationResponseVM>();
+                foreach (var app in applications)
                 {
-                    Id = app.Id,
-                    ApplicationDate = app.ApplicationDate,
-                    CoverLetter = app.CoverLetter
-                };
-                applicationResponses.Add(applicationResponse);
+                    var applicationResponse = new ApplicationResponseVM
+                    {
+                        Id = app.Id,
+                        AdId = app.Ad.Id,
+                        ApplicationDate = app.ApplicationDate,
+                        CoverLetter = app.CoverLetter
+                    };
+                    applicationResponses.Add(applicationResponse);
+                }
+                return Ok(applicationResponses);
             }
-            return Ok(applicationResponses);
+            else
+            {
+
+                if (User.IsInRole("company") && User.FindFirstValue(ClaimTypes.NameIdentifier) != companyId.ToString())
+                {
+                    return Forbid();
+                }
+
+                if (!_dbHelper.DoesCompanyAdExist(companyId, adId))
+                {
+                    return Forbid();
+                }
+
+                var applications = _context.Applications
+                    .Include(a => a.Candidate)
+                    .Include(a => a.Ad)
+                    .Where(a => a.Ad.Company.Id == companyId && a.Ad.Id == adId)
+                    .AsSplitQuery()
+                    .ToList();
+
+                List<ApplicationResponseVM> applicationResponses = new List<ApplicationResponseVM>();
+                foreach (var app in applications)
+                {
+                    var applicationResponse = new ApplicationResponseVM
+                    {
+                        Id = app.Id,
+                        AdId = app.Ad.Id,
+                        ApplicationDate = app.ApplicationDate,
+                        CoverLetter = app.CoverLetter
+                    };
+                    applicationResponses.Add(applicationResponse);
+                }
+                return Ok(applicationResponses);
+            }
         }
 
         // GET: api/companies/{companyId}/ads/{adId}/applications/{appId}
