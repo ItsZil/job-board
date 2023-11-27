@@ -1,5 +1,7 @@
 ﻿@using job_board.Models;
 
+@inject NavigationManager Navigate
+
 <MudDialog>
     <DialogContent>
         <MudText>@Ad.Description</MudText>
@@ -21,23 +23,34 @@
             </MudItem>
         </MudGrid>
         <br />
+        @if (_error)
+        {
+            <MudAlert Severity="Severity.Error" IsOpen="true" Class="pt-4 pb-4">@_errorText</MudAlert>
+        }
     </DialogContent>
     <DialogActions>
         <MudButton OnClick="Close">Close</MudButton>
-        <MudButton Color="Color.Primary" OnClick="Submit">Apply</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Apply">Apply</MudButton>
     </DialogActions>
 </MudDialog>
 
-    @code {
+@code {
     [CascadingParameter] MudDialogInstance MudDialog { get; set; }
     [Parameter] public Ad Ad { get; set; }
     [Parameter] public bool LoggedIn { get; set; }
     [Parameter] public bool IsCandidate { get; set; }
 
-    void Submit()
+    bool _error = false;
+    string _errorText = "You must be logged in as a candidate to apply for a job.";
+
+    void Apply()
     {
-        // TODO: redirect to application creation IF logged in (otherwise redirect to login), if not an employee or admin then show error
-        MudDialog.Close(DialogResult.Ok(true));
+        if (!LoggedIn || !IsCandidate)
+        {
+            _error = true;
+            return;
+        }
+        Navigate.NavigateTo($"/apply/{Ad.Company.Id}/{Ad.Id}");
     }
 
     void Close() => MudDialog.Cancel();

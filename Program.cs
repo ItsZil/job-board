@@ -23,6 +23,7 @@ namespace job_board
 
             builder.Services.AddControllers();
             builder.Services.AddMudServices();
+            builder.Services.AddHttpContextAccessor();
             builder.Services.AddScoped<TokenAuthStateProvider>();
             builder.Services.AddScoped<AuthenticationStateProvider>(provider => provider.GetRequiredService<TokenAuthStateProvider>());
 
@@ -59,6 +60,9 @@ namespace job_board
                 });
 
             builder.Services.AddScoped<DbHelper>();
+
+            builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>().CreateClient("httpClient"));
+
             var app = builder.Build();
             Application = app;
 

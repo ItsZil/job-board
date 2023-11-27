@@ -20,9 +20,9 @@ namespace job_board.Utilities
         public async Task<string> GetTokenAsync()
              => await _jsRuntime.InvokeAsync<string>("localStorage.getItem", "authToken");
 
-        public async Task SetTokenAsync(string token)
+        public async Task SetTokenAsync(string token, bool notifyStateChanged = true)
         {
-            if (token == null)
+            if (token == null || token == string.Empty)
             {
                 await _jsRuntime.InvokeAsync<object>("localStorage.removeItem", "authToken");
             }
@@ -30,8 +30,10 @@ namespace job_board.Utilities
             {
                 await _jsRuntime.InvokeAsync<object>("localStorage.setItem", "authToken", token);
             }
-
-            NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
+            if (notifyStateChanged)
+            {
+                NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
+            }
         }
 
         public override async Task<AuthenticationState> GetAuthenticationStateAsync()

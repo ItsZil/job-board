@@ -14,7 +14,7 @@
     <MudGrid>
         <!-- Actions -->
         <MudItem xs="12" sm="6" md="6">
-            <MudPaper Elevation="2" Class="pa-4" Style="height: 200px;">
+            <MudPaper Elevation="2" Class="pa-4" Height="15vh">
                 <MudText Typo="Typo.h5">Actions</MudText>
                 @if (_loggingIn)
                 {
@@ -72,7 +72,14 @@
         </MudItem>
 
         <MudItem xs="12" sm="6" md="6">
-            <MudPaper Elevation="2" Class="pa-4" Style="height: 200px;">
+            <MudPaper Elevation="2" Class="pa-4" Height="15vh">
+                @if (_loggingIn)
+                {
+                    <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Medium" Class="ma-4 mt-10" />
+                }
+
+                @if (_isCandidate)
+                {
                 <MudText Typo="Typo.h5">My Applications</MudText>
                 <MudButton Href="/login">
                     <ChildContent>
@@ -87,6 +94,7 @@
                         <MudText Typo="Typo.button" Color="Color.Inherit">Register</MudText>
                     </ChildContent>
                 </MudButton>
+                }
             </MudPaper>
         </MudItem>
 
@@ -94,8 +102,8 @@
         {
             <!-- Company Active Job Postings -->
             <MudItem xs="12" sm="12" md="12">
-                <MudPaper Elevation="2" Class="pa-4" Style="height: 200px;">
-                    <MudText Typo="Typo.h5">Active Job Postings</MudText>
+                <MudPaper Elevation="2" Class="pa-4" Style="height: 40vh">
+                    <MudText Typo="Typo.h5">Your job postings</MudText>
                     <MudIconButton Href="/employer-dashboard" Icon="@Icons.Material.Filled.Business" />
                     <MudText Href="/employer-dashboard" Text="Employer Dashboard" Typo="Typo.subtitle1" Color="Color.Inherit" />
 
@@ -124,6 +132,7 @@
                                     <MudText>@ad.Company.CompanyName | @ad.Location</MudText>
                                     <MudSpacer />
                                     <MudText Typo="Typo.subtitle2" Style="@($"color:{Colors.Green.Darken4};")">€@ad.SalaryFrom - €@ad.SalaryTo</MudText>
+                                    <MudText Typo="Typo.body2">Posted: @ad.PostedDate</MudText>
                             </MudListItem>
                         }
                     </MudList>

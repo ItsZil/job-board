@@ -1,0 +1,121 @@
+﻿@page "/Applications"
+@using Microsoft.AspNetCore.Components.Authorization
+@using job_board.Components.Dialogs
+@using job_board.Utilities
+@using job_board.Models;
+
+@inject TokenAuthStateProvider TokenAuthStateProvider
+@inject IHttpClientFactory ClientFactory
+@inject IDialogService DialogService
+
+<PageTitle>Jobs</PageTitle>
+
+<MudContainer Class="mt-16 px-8" MaxWidth="MaxWidth.False">
+    <MudItem xs="12" sm="12">
+        <MudPaper Elevation="2" Class="pa-4; overflow-auto" Height="70vh">
+            @if (_isCandidate)
+            {
+                <MudText Typo="Typo.h5" Class="pa-4">My Applications</MudText>
+                @if (_retrievingApplications)
+                {
+                    <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" Class="ml-10" />
+                }
+                else 
+                {
+                    <MudList Clickable="true">
+                        @foreach (var ad in AllJobs)
+                        {
+                            <MudDivider />
+                            <MudListItem @onclick="(e) => OpenAdDialog(ad)">
+                                <MudText Typo="Typo.h6">@ad.Title</MudText>
+                                    <MudText>@ad.Company.CompanyName | @ad.Location</MudText>
+                                    <MudSpacer />
+                                    <MudText Typo="Typo.subtitle2" Style="@($"color:{Colors.Green.Darken4};")">€@ad.SalaryFrom - €@ad.SalaryTo</MudText>
+                                    <MudText Typo="Typo.subtitle2">Posted: @ad.PostedDate</MudText>
+                            </MudListItem>
+                        }
+                    </MudList>
+                }
+            }
+            else
+            {
+                <MudText Typo="Typo.h5" Class="pa-4">Received Applications</MudText>
+            }
+        </MudPaper>
+    </MudItem>
+</MudContainer>
+
+@code {
+    bool _loggedIn = false;
+    bool _loggingIn = true;
+    string _userId;
+    string _userRole;
+
+    bool _isCompany = false;
+    bool _isCandidate = false;
+    bool _isAdmin = false;
+
+    List<Company> AllCompanies = new List<Company>();
+    List<Ad> AllJobs = new List<Ad>();
+    List<Application> AllApplications = new List<Application>();
+
+    bool _retrievingApplications = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await TokenAuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        _loggedIn = authState.User.Identity.IsAuthenticated;
+
+        if (_loggedIn)
+        {
+            _userId = user.Identity.Name;
+            _userRole = user.FindFirst("role")?.Value ?? "candidate";
+
+            if (_userRole == "company")
+            {
+                _isCompany = true;
+            }
+            else if (_userRole == "candidate")
+            {
+                _isCandidate = true;
+            }
+            else if (_userRole == "admin")
+            {
+                _isCompany = true;
+                _isCandidate = true;
+                _isAdmin = true;
+            }
+        }
+        _loggingIn = false;
+
+
+        var client = ClientFactory.CreateClient("httpClient");
+        // Latest job postings
+        AllCompanies = await client.GetFromJsonAsync<List<Company>>("api/companies");
+        if (AllCompanies != null)
+        {
+            foreach (var company in AllCompanies)
+            {
+                var companyAds = await client.GetFromJsonAsync<List<Ad>>($"api/companies/{company.Id}/ads");
+                if (companyAds != null)
+                {
+                    AllJobs.AddRange(companyAds);
+                }
+            }
+            AllJobs.Sort((a, b) => b.PostedDate.CompareTo(a.PostedDate));
+            // stopped here
+        }
+        _retrievingApplications = false;
+    }
+
+    private void OpenAdDialog(Ad selectedAd)
+    {
+        var parameters = new DialogParameters<HomeAdDialog>();
+        parameters.Add("Ad", selectedAd);
+        parameters.Add("LoggedIn", _loggedIn);
+        parameters.Add("IsCandidate", _isCandidate);
+        var options = new DialogOptions { CloseOnEscapeKey = true };
+        DialogService.Show<HomeAdDialog>(selectedAd.Title, parameters, options);
+    }
+}

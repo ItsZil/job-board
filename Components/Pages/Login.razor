@@ -56,9 +56,8 @@
         if (!_loginError)
         {
             string token = await authenticationResult.Content.ReadAsStringAsync();
-            await TokenAuthStateProvider.SetTokenAsync(token);
-
-            Navigation.NavigateTo("/");
+            string tokenParam = $"token={Uri.EscapeDataString(token)}";
+            Navigation.NavigateTo($"/login-callback?{tokenParam}");
         }
         _processing = false;
     }

@@ -1,4 +1,7 @@
-﻿@inherits LayoutComponentBase
+﻿@using job_board.Utilities
+@inherits LayoutComponentBase
+@inject TokenAuthStateProvider TokenAuthStateProvider
+@inject NavigationManager Navigate
 
 <MudThemeProvider />
 <MudDialogProvider />
@@ -17,7 +20,7 @@
                 <MudPopover Open="@_accountMenuOpen" AnchorOrigin="Origin.BottomCenter" TransformOrigin="Origin.TopCenter">
                     @if (_loggedIn)
                     {
-                        <MudButton Href="/logout">
+                        <MudButton OnClick="Logout" Href="/logout">
                             <ChildContent>
                                 <MudIcon Icon="@Icons.Material.Filled.ExitToApp" Class="mr-1" />
                                 <MudText Typo="Typo.button" Color="Color.Inherit">Logout</MudText>
@@ -27,14 +30,14 @@
                     else
                     {
                         <div>
-                            <MudButton Href="/login">
+                            <MudButton OnClick="Login">
                                 <ChildContent>
                                     <MudIcon Icon="@Icons.Material.Filled.ExitToApp" Class="mr-1" />
                                     <MudText Typo="Typo.button" Color="Color.Inherit">Login</MudText>
                                 </ChildContent>
                             </MudButton>
 
-                            <MudButton Href="/register">
+                            <MudButton OnClick="Logout">
                                 <ChildContent>
                                     <MudIcon Icon="@Icons.Material.Filled.PersonAdd" Class="mr-1" />
                                     <MudText Typo="Typo.button" Color="Color.Inherit">Register</MudText>
@@ -60,6 +63,20 @@
     bool _accountMenuOpen = false;
     bool _loggedIn = false;
 
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await TokenAuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        _loggedIn = authState.User.Identity.IsAuthenticated;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        var authState = await TokenAuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        _loggedIn = authState.User.Identity.IsAuthenticated;
+    }
+
     void DrawerToggle()
     {
         _drawerOpen = !_drawerOpen;
@@ -72,12 +89,14 @@
 
     void Login()
     {
-        // Open the 
+        ToggleAccountOpen();
+        Navigate.NavigateTo("/login");
     }
 
-    void Register()
+    void Logout()
     {
-        // Handle register logic
+        ToggleAccountOpen();
+        Navigate.NavigateTo("/logout");
     }
 }
 

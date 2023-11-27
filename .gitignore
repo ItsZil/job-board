@@ -234,3 +234,4 @@ _Pvt_Extensions
 website/
 Properties/launchSettings.json
 appsettings.json
+.aider*
