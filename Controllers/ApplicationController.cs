@@ -94,7 +94,8 @@ namespace job_board.Controllers
                         Id = app.Id,
                         AdId = app.Ad.Id,
                         ApplicationDate = app.ApplicationDate,
-                        CoverLetter = app.CoverLetter
+                        CoverLetter = app.CoverLetter,
+                        PhoneNumber = app.Candidate.Phone
                     };
                     applicationResponses.Add(applicationResponse);
                 }
