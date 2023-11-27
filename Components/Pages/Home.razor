@@ -13,78 +13,89 @@
 <MudContainer Class="mt-16 px-8" MaxWidth="MaxWidth.False">
     <MudGrid>
         <!-- Actions -->
-        <MudItem xs="12" sm="6" md="6">
-            <MudPaper Elevation="2" Class="pa-4" Height="13vh">
-                <MudText Class="mb-2" Typo="Typo.h5">Actions</MudText>
+        <MudItem lg="6" md="6" sm="12" xs="12">
+            <MudPaper Elevation="2" Class="pa-4 overflow-auto" Height="16vh">
+                <MudText Class="ml-2" Typo="Typo.h5">Actions</MudText>
                 @if (_loggingIn)
                 {
                     <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Medium" Class="ma-4" />
                 }
 
-                @if (_loggedIn)
-                {
-                    <!-- Authenticated -->
-                    @if (_isCandidate)
+                <MudList>
+                    @if (_loggedIn)
                     {
-                        <MudButton Href="/create-job">
-                            <ChildContent>
-                                <MudIcon Icon="@Icons.Material.Filled.PostAdd" Class="mr-1" />
-                                <MudText Typo="Typo.button" Color="Color.Inherit">Create job posting</MudText>
-                            </ChildContent>
-                        </MudButton>
-                    }
+                        <!-- Authenticated -->
+                        @if (_isCandidate)
+                        {
+                            <MudListItem>
+                                <MudButton Href="/applications" FullWidth="true" Variant="Variant.Outlined">
+                                    <ChildContent>
+                                        <MudIcon Icon="@Icons.Material.Outlined.WorkOutline" Class="mr-1" />
+                                        <MudText Typo="Typo.button" Color="Color.Inherit">View applications</MudText>
+                                    </ChildContent>
+                                </MudButton>
+                            </MudListItem>
+                        }
 
-                    if (_isCompany)
-                    {
-                        <MudButton Href="/create-job">
-                            <ChildContent>
-                                <MudIcon Icon="@Icons.Material.Filled.PostAdd" Class="mr-1" />
-                                <MudText Typo="Typo.button" Color="Color.Inherit">Create job posting</MudText>
-                            </ChildContent>
-                        </MudButton>
-                    }
+                        if (_isCompany)
+                        {
+                            <MudListItem>
+                                <MudButton Href="/create-job" FullWidth="true" Variant="Variant.Outlined">
+                                    <ChildContent>
+                                        <MudIcon Icon="@Icons.Material.Outlined.PostAdd" Class="mr-1" />
+                                        <MudText Typo="Typo.button" Color="Color.Inherit">Create job posting</MudText>
+                                    </ChildContent>
+                                </MudButton>
+                            </MudListItem>
+                        }
 
-                    <MudList>
-                        <MudItem>
-                            <MudButton Href="/logout">
+                        <MudListItem>
+                            <MudButton Href="/logout" FullWidth="true" Variant="Variant.Outlined">
                                 <ChildContent>
-                                    <MudIcon Icon="@Icons.Material.Filled.ExitToApp" Class="mr-1" />
+                                    <MudIcon Icon="@Icons.Material.Outlined.ExitToApp" Class="mr-1" />
                                     <MudText Typo="Typo.button" Color="Color.Inherit">Logout</MudText>
                                 </ChildContent>
                             </MudButton>
-                        </MudItem>
-                    </MudList>
-                }
-                else if (!_loggingIn)
-                {
-                    <!-- Not authenticated -->
-                    <MudList>
-                        <MudItem>
-                            <MudButton Href="/login">
+                        </MudListItem>
+                    }
+                    else if (!_loggingIn)
+                    {
+                        <!-- Not authenticated -->
+                        <MudListItem>
+                            <MudButton Href="/login" FullWidth="true" Variant="Variant.Outlined">
                                 <ChildContent>
-                                    <MudIcon Icon="@Icons.Material.Filled.ExitToApp" Class="mr-1" />
+                                    <MudIcon Icon="@Icons.Material.Outlined.ExitToApp" Class="mr-1" />
                                     <MudText Typo="Typo.button" Color="Color.Inherit">Login</MudText>
                                 </ChildContent>
                             </MudButton>
-                        </MudItem>
+                        </MudListItem>
 
-                        <MudItem>
-                            <MudButton Href="/register">
+                        <MudListItem>
+                            <MudButton Href="/register" FullWidth="true" Variant="Variant.Outlined">
                                 <ChildContent>
-                                    <MudIcon Icon="@Icons.Material.Filled.PersonAdd" Class="mr-1" />
+                                    <MudIcon Icon="@Icons.Material.Outlined.PersonAdd" Class="mr-1" />
                                     <MudText Typo="Typo.button" Color="Color.Inherit">Register</MudText>
                                 </ChildContent>
                             </MudButton>
-                        </MudItem>
-                    </MudList>
-                }
+                        </MudListItem>
+                    }
+                </MudList>
             </MudPaper>
         </MudItem>
 
-        <MudItem xs="12" sm="6" md="6">
-            <MudPaper Elevation="2" Class="pa-4" Height="10vh">
-                <!-- Random office photo image carousel -->
-
+        <MudItem lg="6" md="6" sm="12" xs="12">
+            <MudPaper Elevation="2" Class="pa-4" Height="16vh">
+                <MudCarousel Class="mud-width-full" style="height:100%" ShowArrows="false" ShowBullets="false" EnableSwipeGesture="false" AutoCycle="true" TData="object">
+                    <MudCarouselItem Transition="Transition.Slide" Color="@Color.Primary">
+                        <MudImage Src="images/1.png" Fluid="true" ObjectFit="ObjectFit.Contain"></MudImage>
+                    </MudCarouselItem>
+                    <MudCarouselItem Transition="Transition.Slide" Color="@Color.Secondary">
+                        <MudImage Src="images/2.jpg" Fluid="true" ObjectFit="ObjectFit.Contain"></MudImage>
+                    </MudCarouselItem>
+                    <MudCarouselItem Transition="Transition.Slide">
+                        <MudImage Src="images/3.jpg" Fluid="true" ObjectFit="ObjectFit.Contain"></MudImage>
+                    </MudCarouselItem>
+                </MudCarousel>
             </MudPaper>
         </MudItem>
 
@@ -92,18 +103,18 @@
         {
             <!-- Company Applications -->
             <MudItem xs="12" sm="12">
-                <MudPaper Elevation="2" Class="pa-4; overflow-auto" Height="90vh">
+                <MudPaper Elevation="2" Class="pa-4 overflow-auto" Height="90vh">
                     <MudText Typo="Typo.h5" Class="pa-4">Received Applications</MudText>
                     <MudList Clickable="true">
-                    <!--@foreach (var application in AllApplications)
+                        <!--@foreach (var application in AllApplications)
                         {
-                            <MudDivider />
-                            <MudListItem @onclick="(e) => OpenApplicationViewDialog(AllAds.Where(a => a.Id == application.AdId).FirstOrDefault(), application)">
-                                <MudText Typo="Typo.h6">@AllAds.Where(a => a.Id == application.AdId).FirstOrDefault().Title</MudText>
-                                    <MudText> @AllAds.Where(a => a.Id == application.AdId).FirstOrDefault().Company.CompanyName </MudText>
-                                    <MudSpacer />
-                                    <MudText Style="color:gray" Typo="Typo.subtitle2">Application Date: @application.ApplicationDate</MudText>
-                                </MudListItem>
+                                <MudDivider />
+                                <MudListItem @onclick="(e) => OpenApplicationViewDialog(AllAds.Where(a => a.Id == application.AdId).FirstOrDefault(), application)">
+                                    <MudText Typo="Typo.h6">@AllAds.Where(a => a.Id == application.AdId).FirstOrDefault().Title</MudText>
+                                        <MudText> @AllAds.Where(a => a.Id == application.AdId).FirstOrDefault().Company.CompanyName </MudText>
+                                        <MudSpacer />
+                                        <MudText Style="color:gray" Typo="Typo.subtitle2">Application Date: @application.ApplicationDate</MudText>
+                                    </MudListItem>
                         } -->
                     </MudList>
                 </MudPaper>
@@ -129,7 +140,7 @@
                                     <MudText Typo="Typo.h6">@ad.Title</MudText>
                                         <MudText>@ad.Company.CompanyName | @ad.Location</MudText>
                                         <MudSpacer />
-                                        <MudText Typo="Typo.subtitle2" Style="@($"color:{Colors.Green.Darken4};")">€@ad.SalaryFrom - €@ad.SalaryTo</MudText>
+                                        <MudText Typo="Typo.subtitle2" Style="@($"color:{Colors.Green.Darken4};")">â‚¬@ad.SalaryFrom - â‚¬@ad.SalaryTo</MudText>
                                         <MudText Style="color:gray" Typo="Typo.body2">Posted: @ad.PostedDate</MudText>
                                     </MudListItem>
                             }
