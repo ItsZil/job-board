@@ -263,6 +263,8 @@
         parameters.Add("Ad", selectedAd);
         parameters.Add("LoggedIn", _loggedIn);
         parameters.Add("IsCandidate", _isCandidate);
+        parameters.Add("IsAdOwner", _userId == selectedAd.Company.Id);
+        parameters.Add("UserId", _userId);
         var options = new DialogOptions { CloseOnEscapeKey = true };
         DialogService.Show<HomeAdDialog>(selectedAd.Title, parameters, options);
     }
