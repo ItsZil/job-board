@@ -58,7 +58,7 @@
 @code {
     bool _loggedIn = false;
     bool _loggingIn = true;
-    int _userId;
+    int _userId = -1;
     string _userRole;
 
     bool _isCompany = false;
@@ -134,6 +134,8 @@
         var parameters = new DialogParameters<BrowseCompanyDialog>();
         parameters.Add("Company", selectedCompany);
         parameters.Add("CompanyAds", AllJobs.Where(a => a.Company.Email == selectedCompany.Email).ToList());
+        parameters.Add("UserId", _userId);
+        parameters.Add("IsUserCompany", _userId == selectedCompany.Id);
         var options = new DialogOptions { CloseOnEscapeKey = true };
         DialogService.Show<BrowseCompanyDialog>(selectedCompany.CompanyName, parameters, options);
     }

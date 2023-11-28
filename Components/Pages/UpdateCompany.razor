@@ -1,0 +1,172 @@
+﻿@page "/update-company/{_companyId:int}"
+@using System.Text.Json;
+@using Microsoft.AspNetCore.Components.Authorization
+@using job_board.Components.Dialogs
+@using job_board.Utilities
+@using job_board.Models;
+@using job_board.ViewModels.Company
+
+@inject NavigationManager Navigate
+@inject TokenAuthStateProvider TokenAuthStateProvider
+@inject IHttpClientFactory ClientFactory
+@inject IDialogService DialogService
+
+<PageTitle>Update Company</PageTitle>
+
+<MudContainer Class="mt-16 px-8">
+    <MudGrid>
+        <MudItem xs="12" sm="12" md="12" lg="10" xl="8" Class="mx-auto">
+            <MudPaper Elevation="2" Class="pa-4 my-2">
+                @if (_loading)
+                {
+                    <MudContainer Class="d-flex flex-column justify-content-center align-items-center">
+                        <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" Class="mx-auto" />
+                    </MudContainer>
+                }
+                else
+                {
+                    <MudText Typo="Typo.h5" Class="pa-4">Update Ad</MudText>
+                    <EditForm Model="@_companyUpdateVM" OnValidSubmit="@SubmitUpdateCompany" OnInvalidSubmit="@InvalidSubmit">
+                        <DataAnnotationsValidator />
+                        <MudTextField T="string" Label="Company Name" Variant="Variant.Outlined" Counter="75" MaxLength="75" Immediate="true" Validation="@(new Func<string, IEnumerable<string>>(MaxCompanyNameCharacters))" @bind-Value="@_companyUpdateVM.Company" Required="true" FullWidth="true" />
+                        <MudTextField T="string" Label="Company Description" Counter="1000" MaxLength="1000" Variant="Variant.Outlined" Validation="@(new Func<string,  IEnumerable<string>>(MaxCompanyDescriptionCharacters))" Immediate="true"
+                                      Placeholder="Company Description (required)" @bind-Value="@_companyUpdateVM.CompanyDescription" FullWidth="true" Lines="15" Required="true" Class="mt-6" />
+                        <MudTextField T="string" Label="Industry" Variant="Variant.Outlined" Counter="50" MaxLength="50" Immediate="true" Validation="@(new Func<string, IEnumerable<string>>(MaxIndustryCharacters))" @bind-Value="@_companyUpdateVM.Industry" Required="true" FullWidth="true" />
+                        <MudTextField T="string" Label="Website" Variant="Variant.Outlined" Counter="50" MaxLength="50" Immediate="true" Validation="@(new Func<string, IEnumerable<string>>(MaxWebsiteCharacters))" @bind-Value="@_companyUpdateVM.Website" FullWidth="true" Class="mt-6" />
+                        <MudButton ButtonType="ButtonType.Submit" Color="Color.Primary" Variant="Variant.Filled" Class="mt-6" FullWidth="true">Save</MudButton>
+                    </EditForm>
+                }
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+</MudContainer>
+
+@code {
+    bool _loggedIn = false;
+    bool _loggingIn = true;
+    bool _loading = true;
+    int _userId;
+    string _userRole;
+    [Parameter] public int _companyId { get; set; }
+
+    bool _isCompany = false;
+    bool _isCandidate = false;
+    bool _isAdmin = false;
+
+    Company _company;
+    HttpClient client;
+    CompanyUpdateVM _companyUpdateVM = new CompanyUpdateVM();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await TokenAuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        _loggedIn = authState.User.Identity.IsAuthenticated;
+        client = ClientFactory.CreateClient("httpClient");
+
+        if (_loggedIn)
+        {
+            _userId = int.Parse(user.FindFirst("nameid")?.Value ?? "-1");
+            _userRole = user.FindFirst("role")?.Value ?? "candidate";
+
+            if (_userRole == "company")
+            {
+                _isCompany = true;
+            }
+            else if (_userRole == "candidate")
+            {
+                _isCandidate = true;
+            }
+            else if (_userRole == "admin")
+            {
+                _isCompany = true;
+                _isCandidate = true;
+                _isAdmin = true;
+            }
+        }
+        else
+        {
+            await DialogService.ShowMessageBox("Error", "You must be logged in as a company to update this job.");
+            Navigate.NavigateTo("/");
+        }
+        _loggingIn = false;
+
+        // Retrieve company
+        var response = await client.GetAsync($"api/companies/{_companyId}/");
+        if (response == null || response.StatusCode != System.Net.HttpStatusCode.OK)
+        {
+            await DialogService.ShowMessageBox("Error", "You must be logged in as this company in order to update it.");
+            Navigate.NavigateTo("/companies");
+        }
+        else
+        {
+            _company = await response.Content.ReadFromJsonAsync<Company>();
+            
+            _companyUpdateVM.Company = _company.CompanyName;
+            _companyUpdateVM.CompanyDescription = _company.CompanyDescription;
+            _companyUpdateVM.Website = _company.Website;
+            _companyUpdateVM.Industry = _company.Industry;
+        }
+        _loading = false;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender && client.DefaultRequestHeaders.Authorization == null)
+        {
+            var token = await TokenAuthStateProvider.GetTokenRawAsync();
+            client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);            
+        }
+    }
+
+    private async Task SubmitUpdateCompany()
+    {
+        try
+        {
+            var response = await client.PutAsJsonAsync($"api/companies/{_userId}", _companyUpdateVM);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                await DialogService.ShowMessageBox("Error", "An error occurred while updating company.");
+            }
+            else
+            {
+                await DialogService.ShowMessageBox("Success", "You have successfully updated the company.");
+                Navigate.NavigateTo("/companies");
+            }
+        }
+        catch (Exception ex)
+        {
+            await DialogService.ShowMessageBox("Error", $"An error occurred: {ex.Message}");
+        }
+    }
+
+    private async Task InvalidSubmit()
+    {
+        await DialogService.ShowMessageBox("Error", "Please correct any missing fields before saving.");
+    }
+
+    private IEnumerable<string> MaxCompanyNameCharacters(string ch)
+    {
+        if (!string.IsNullOrEmpty(ch) && 75 < ch?.Length)
+            yield return "Max 75 characters";
+    }
+
+    private IEnumerable<string> MaxCompanyDescriptionCharacters(string ch)
+    {
+        if (!string.IsNullOrEmpty(ch) && 1000 < ch?.Length)
+            yield return "Max 1000 characters";
+    }
+
+    private IEnumerable<string> MaxIndustryCharacters(string ch)
+    {
+        if (!string.IsNullOrEmpty(ch) && 50 < ch?.Length)
+            yield return "Max 50 characters";
+    }
+
+    private IEnumerable<string> MaxWebsiteCharacters(string ch)
+    {
+        if (!string.IsNullOrEmpty(ch) && 50 < ch?.Length)
+            yield return "Max 50 characters";
+    }
+}
