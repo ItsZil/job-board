@@ -43,7 +43,7 @@
                 </div>
 
                 <!-- Cover Letter Textbox -->
-                <MudTextField T="string" Multiline="true" Lines="10" Counter="1000" MaxLength="1000" Variant="Variant.Outlined" Validation="@(new Func<string, IEnumerable<string>>(MaxCharacters))" Immediate="true" Placeholder="Cover letter (optional)" @bind-Value="_coverLetter" Class="mt-4" />
+                <MudTextField T="string" Lines="10" Counter="1000" MaxLength="1000" Variant="Variant.Outlined" Validation="@(new Func<string, IEnumerable<string>>(MaxCharacters))" Immediate="true" Placeholder="Cover letter (optional)" @bind-Value="_coverLetter" Class="mt-4" />
 
                 <!-- Submit Button -->
                 <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="@SubmitApplication" Class="mt-4">Submit Application</MudButton>

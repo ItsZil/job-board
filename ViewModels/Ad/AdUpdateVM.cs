@@ -5,9 +5,11 @@ namespace job_board.ViewModels.Ad
     public class AdUpdateVM
     {   
         [Required]
-        [StringLength(255)]
+        [StringLength(75)]
         public string Title { get; set; }
 
+        [Required]
+        [StringLength(3000)]
         public string? Description { get; set; }
 
         [Required]

@@ -75,7 +75,12 @@ namespace job_board.Controllers
         [HttpPost]
         [Authorize(Roles = "company,admin")]
         public async Task<IActionResult> CreateAd(int companyId, [FromBody] AdCreateVM adData)
-        {            
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             var company = _context.Companies.Find(companyId);
             if (company == null)
             {
