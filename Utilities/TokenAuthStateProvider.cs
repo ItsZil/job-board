@@ -20,13 +20,16 @@ namespace job_board.Utilities
         public async Task<string> GetTokenRawAsync()
         {
             string token = await GetTokenAsync();
-            JsonDocument jsonDocument = JsonDocument.Parse(token);
-            JsonElement root = jsonDocument.RootElement;
-
-            if (root.TryGetProperty("token", out JsonElement tokenElement))
+            if (token != null && token != string.Empty)
             {
-                string rawToken = tokenElement.GetString();
-                return rawToken;
+                JsonDocument jsonDocument = JsonDocument.Parse(token);
+                JsonElement root = jsonDocument.RootElement;
+
+                if (root.TryGetProperty("token", out JsonElement tokenElement))
+                {
+                    string rawToken = tokenElement.GetString();
+                    return rawToken;
+                }
             }
             return token;
         }
