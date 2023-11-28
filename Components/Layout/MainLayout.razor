@@ -7,7 +7,7 @@
 <MudDialogProvider />
 <MudSnackbarProvider />
 
-<MudLayout>
+<MudLayout Style="display: flex; flex-direction: column; min-height: 100vh;">
     <MudAppBar Elevation="1">
         <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
         <MudButton Variant="Variant.Text" Class="ml-3" Href="/"><MudText Typo="Typo.h5" Color="Color.Tertiary">Job Board</MudText></MudButton>
@@ -52,10 +52,14 @@
     <MudDrawer @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="2">
         <NavMenu></NavMenu>
     </MudDrawer>
-    <MudMainContent Style="padding-bottom:60px">
+    <MudMainContent Style="flex-grow: 1; padding-bottom:60px;">
         @Body
     </MudMainContent>
-    <Footer />
+    <footer style="width: 100vw; z-index: 1500; position: relative; height: 48px; background-color: gainsboro; max-width:100%; display: flex; justify-content: flex-end; align-items: center; padding-right: 1rem;">
+        <MudText Typo="Typo.subtitle2">
+            © 2023 Žilvinas Krasauskas
+        </MudText>
+    </footer>
 </MudLayout>
 
 @code {
