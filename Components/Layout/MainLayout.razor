@@ -3,14 +3,14 @@
 @inject TokenAuthStateProvider TokenAuthStateProvider
 @inject NavigationManager Navigate
 
-<MudThemeProvider />
+<MudThemeProvider Theme="Theme" />
 <MudDialogProvider />
 <MudSnackbarProvider />
 
 <MudLayout Style="display: flex; flex-direction: column; min-height: 100vh;">
     <MudAppBar Elevation="1">
         <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
-        <MudButton Variant="Variant.Text" Class="ml-3" Href="/"><MudText Typo="Typo.h5" Color="Color.Tertiary">Job Board</MudText></MudButton>
+        <MudButton Variant="Variant.Text" Class="ml-3" Href="/"><MudText Typo="Typo.h5" Style="color:white">Job Board</MudText></MudButton>
         <MudSpacer />
         <div>
             <MudContainer>
@@ -55,8 +55,8 @@
     <MudMainContent Style="flex-grow: 1; padding-bottom:60px;">
         @Body
     </MudMainContent>
-    <footer style="width: 100vw; z-index: 1500; position: relative; height: 48px; background-color: gainsboro; max-width:100%; display: flex; justify-content: flex-end; align-items: center; padding-right: 1rem;">
-        <MudText Typo="Typo.subtitle2">
+    <footer style="width: 100vw; z-index: 1100; position: relative; height: 48px; background-color:rgba(158,158,158,1); max-width:100%; display: flex; justify-content: flex-end; align-items: center; padding-right: 1rem;">
+        <MudText Typo="Typo.subtitle2" Style="color:white">
             © 2023 Žilvinas Krasauskas
         </MudText>
     </footer>
@@ -102,6 +102,26 @@
         ToggleAccountOpen();
         Navigate.NavigateTo("/logout");
     }
+
+    MudTheme Theme = new MudTheme()
+        {
+            Palette = new PaletteLight()
+            {
+                Primary = Colors.Blue.Default,
+                Secondary = Colors.Green.Accent4,
+                AppbarBackground = Colors.Grey.Default,
+            },
+            PaletteDark = new PaletteDark()
+            {
+                Primary = Colors.Blue.Lighten1
+            },
+
+            LayoutProperties = new LayoutProperties()
+            {
+                DrawerWidthLeft = "260px",
+                DrawerWidthRight = "300px"
+            }
+        };
 }
 
 <div id="blazor-error-ui">

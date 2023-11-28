@@ -135,7 +135,7 @@
         parameters.Add("Company", selectedCompany);
         parameters.Add("CompanyAds", AllJobs.Where(a => a.Company.Email == selectedCompany.Email).ToList());
         parameters.Add("UserId", _userId);
-        parameters.Add("IsUserCompany", _userId == selectedCompany.Id);
+        parameters.Add("IsUserCompany", _userId == selectedCompany.Id || _isAdmin);
         var options = new DialogOptions { CloseOnEscapeKey = true };
         DialogService.Show<BrowseCompanyDialog>(selectedCompany.CompanyName, parameters, options);
     }
