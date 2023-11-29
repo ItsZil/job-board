@@ -118,13 +118,8 @@
 
             if (_isCandidate)
                 AllCompanies = await client.GetFromJsonAsync<List<Company>>("api/companies");
-            else 
+            else
                 AllCompanies.Add(await client.GetFromJsonAsync<Company>($"api/companies/{_userId}"));
-
-            if (AllCompanies == null)
-            {
-                Navigate.NavigateTo("/login");
-            }
 
             var adTasks = AllCompanies.Select(company => client.GetFromJsonAsync<List<Ad>>($"api/companies/{company.Id}/ads")).ToList();
             var ads = await Task.WhenAll(adTasks);

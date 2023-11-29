@@ -53,10 +53,28 @@ namespace job_board.Utilities
         public override async Task<AuthenticationState> GetAuthenticationStateAsync()
         {
             var token = await GetTokenAsync();
-            var identity = string.IsNullOrEmpty(token)
-                ? new ClaimsIdentity()
-                : new ClaimsIdentity(ParseClaimsFromJwt(token), "jwt");
-            return new AuthenticationState(new ClaimsPrincipal(identity));
+            ClaimsIdentity claimsIdentity = new ClaimsIdentity();
+            if (!string.IsNullOrEmpty(token))
+            {
+                IEnumerable<Claim> claims = ParseClaimsFromJwt(token);
+
+                // Check if token is expired
+                Claim expClaim = claims.FirstOrDefault(c => c.Type.Equals("exp"));
+                if (expClaim != null)
+                {
+                    DateTime expDate = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddSeconds(Convert.ToDouble(expClaim.Value));
+                    if (expDate < DateTime.UtcNow)
+                    {
+                        await SetTokenAsync(string.Empty);
+                    }
+                }
+                else
+                {
+                    // Token is not expired
+                    claimsIdentity = new ClaimsIdentity(claims, "jwt");
+                }
+            }
+            return new AuthenticationState(new ClaimsPrincipal(claimsIdentity));
         }
 
         public static IEnumerable<Claim> ParseClaimsFromJwt(string jwt)
