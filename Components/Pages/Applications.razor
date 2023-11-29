@@ -121,6 +121,11 @@
             else 
                 AllCompanies.Add(await client.GetFromJsonAsync<Company>($"api/companies/{_userId}"));
 
+            if (AllCompanies == null)
+            {
+                Navigate.NavigateTo("/login");
+            }
+
             var adTasks = AllCompanies.Select(company => client.GetFromJsonAsync<List<Ad>>($"api/companies/{company.Id}/ads")).ToList();
             var ads = await Task.WhenAll(adTasks);
             foreach (var adList in ads)

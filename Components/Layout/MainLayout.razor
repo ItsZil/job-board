@@ -9,8 +9,16 @@
 
 <MudLayout Style="display: flex; flex-direction: column; min-height: 100vh;">
     <MudAppBar Elevation="1">
-        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
+        <MudHidden Breakpoint="Breakpoint.MdAndUp">
+            <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
+        </MudHidden>
         <MudButton Variant="Variant.Text" Class="ml-3" Href="/"><MudText Typo="Typo.h5" Style="color:white">Job Board</MudText></MudButton>
+        <MudHidden Breakpoint="Breakpoint.SmAndDown">
+            <MudButton Href="/" Style="color:white">Home</MudButton>
+            <MudButton Href="/jobs" Style="color:white">Browse Jobs</MudButton>
+            <MudButton Href="/companies" Style="color:white">Browse Companies</MudButton>
+            <MudButton Href="/applications" Style="color:white">Applications</MudButton>
+        </MudHidden>
         <MudSpacer />
         <div>
             <MudContainer>
@@ -49,9 +57,11 @@
             </MudContainer>
         </div>
     </MudAppBar>
-    <MudDrawer @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="2">
-        <NavMenu></NavMenu>
-    </MudDrawer>
+    <MudHidden Breakpoint="Breakpoint.MdAndUp">
+        <MudDrawer @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="2">
+            <NavMenu></NavMenu>
+        </MudDrawer>
+    </MudHidden>
     <MudMainContent Style="flex-grow: 1; padding-bottom:60px;">
         @Body
     </MudMainContent>
