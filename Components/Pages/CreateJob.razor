@@ -88,6 +88,7 @@
         {
             await DialogService.ShowMessageBox("Error", "You must be logged in as a company to create a new job.");
             Navigate.NavigateTo("/");
+            return;
         }
         _loggingIn = false;
 

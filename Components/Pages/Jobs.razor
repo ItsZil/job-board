@@ -20,10 +20,10 @@
             }
             else
             {
-                <MudSelect Class="pb-4 pt-1" T="string" MultiSelection="true" SelectAll="true" SelectAllText="Select all companies" @bind-SelectedValues="_selectedCompanies" MultiSelectionTextFunc="@(new Func<List<string>, string>(GetCompanyMultiSelectionText))"  Label="Companies" AdornmentIcon="@Icons.Material.Filled.BusinessCenter">
+                <MudSelect Class="pb-4 pt-1 overflow-auto" T="string" MultiSelection="true" SelectAll="true" SelectAllText="Select all companies" @bind-SelectedValues="_selectedCompanies" MultiSelectionTextFunc="@(new Func<List<string>, string>(GetCompanyMultiSelectionText))"  Label="Companies" AdornmentIcon="@Icons.Material.Filled.BusinessCenter">
                     @foreach (var company in AllCompanies)
                     {
-                        <MudSelectItem T="string" Value="@company.CompanyName">@company.CompanyName</MudSelectItem>
+                        <MudSelectItem Class="overflow-auto" T="string" Value="@company.CompanyName">@company.CompanyName</MudSelectItem>
                     }
                 </MudSelect>
 

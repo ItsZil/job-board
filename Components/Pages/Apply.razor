@@ -104,6 +104,7 @@
         {
             await DialogService.ShowMessageBox("Error", "You must be logged in as a candidate to apply for a job.");
             Navigate.NavigateTo("/login");
+            return;
         }
         _loggingIn = false;
 
