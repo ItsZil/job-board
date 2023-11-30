@@ -20,10 +20,12 @@
             <MudButton Href="/applications" Style="color:white">Applications</MudButton>
         </MudHidden>
         <MudSpacer />
+        <MudIconButton Icon="@Icons.Custom.Brands.Facebook" Style="color:white" />
+        <MudIconButton Icon="@Icons.Custom.Brands.Twitter" Style="color:white" />
         <div>
             <MudContainer>
                 <MudAvatar>
-                    <MudIconButton Icon="@Icons.Material.Filled.AccountCircle" Color="Color.Inherit" Size="Size.Large" OnClick="@ToggleAccountOpen" />
+                    <MudIconButton Icon="@Icons.Material.Filled.AccountCircle" Style="color:white" Size="Size.Large" OnClick="@ToggleAccountOpen" />
                 </MudAvatar>
                 <MudPopover Open="@_accountMenuOpen" AnchorOrigin="Origin.BottomCenter" TransformOrigin="Origin.TopCenter">
                     @if (_loggedIn)
@@ -65,7 +67,11 @@
     <MudMainContent Style="flex-grow: 1; padding-bottom:60px;">
         @Body
     </MudMainContent>
-    <footer style="width: 100vw; z-index: 1100; position: relative; height: 48px; background-color:rgba(158,158,158,1); max-width:100%; display: flex; justify-content: flex-end; align-items: center; padding-right: 1rem;">
+    <footer style="width: 100vw; z-index: 1100; position: relative; height: 48px; background-color:rgba(158,158,158,1); max-width:100%; display: flex; justify-content: space-between; align-items: center; padding: 0 1rem;">
+        <div>
+            <MudIconButton Icon="@Icons.Custom.Brands.Facebook" Style="color:white" />
+            <MudIconButton Icon="@Icons.Custom.Brands.Twitter" Style="color:white" />
+        </div>
         <MudText Typo="Typo.subtitle2" Style="color:white">
             © 2023 Žilvinas Krasauskas
         </MudText>
