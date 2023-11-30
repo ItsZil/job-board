@@ -49,6 +49,7 @@
         @if (IsCandidate)
         {
             <MudButton Color="Color.Error" OnClick="Delete">Delete</MudButton>
+            <MudButton Color="Color.Info" OnClick="Update">Update</MudButton>
         }
         <MudButton OnClick="Close">Close</MudButton>
     </DialogActions>
@@ -100,6 +101,11 @@
         {
             _error = true;
         }
+    }
+
+    void Update()
+    {
+        Navigate.NavigateTo($"/update-application/{Ad.Company.Id}/{Ad.Id}/{Application.Id}");
     }
 
     void Close() => MudDialog.Cancel();

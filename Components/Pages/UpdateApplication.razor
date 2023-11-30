@@ -1,0 +1,188 @@
+﻿@page "/update-application/{_companyId:int}/{_adId:int}/{_applicationId:int}"
+@using System.Text.Json;
+@using Microsoft.AspNetCore.Components.Authorization
+@using job_board.Components.Dialogs
+@using job_board.Utilities
+@using job_board.Models;
+@using job_board.ViewModels.Candidate
+
+@inject NavigationManager Navigate
+@inject TokenAuthStateProvider TokenAuthStateProvider
+@inject IHttpClientFactory ClientFactory
+@inject IDialogService DialogService
+
+<PageTitle>Update Application</PageTitle>
+
+<MudContainer Class="mt-16 px-8">
+    <MudGrid>
+        <MudItem xs="12" sm="12" md="12" lg="10" xl="8" Class="mx-auto">
+            <MudPaper Elevation="2" Class="pa-4 my-2" Style="max-height: 90vh; overflow: auto;" MaxHeight="1000px">
+                @if (_loading)
+                {
+                    <MudContainer Class="d-flex flex-column justify-content-center align-items-center">
+                        <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" Class="mx-auto" />
+                    </MudContainer>
+                }
+                else if (_applicationNotFound && !_loading)
+                {
+                    <MudText Typo="Typo.h5">Application not found.</MudText>
+                }
+                else
+                {
+                    <MudText Typo="Typo.h5" Class="pa-4">New Application</MudText>
+
+                    <!-- Ad Information -->
+                    <div class="pt-4 pl-4">
+                        <MudText Typo="Typo.h6">@_ad.Title</MudText>
+                            <MudText>@_ad.Company.CompanyName | @_ad.Location</MudText>
+                            <MudSpacer />
+                            <MudText Typo="Typo.subtitle2" Style="@($"color:{Colors.Green.Darken4};")">€@_ad.SalaryFrom - €@_ad.SalaryTo</MudText>
+                            <br />
+                            <MudDivider />
+                    </div>
+
+                    <EditForm Model="@_applicationUpdateVM" OnValidSubmit="@SubmitUpdateApplication" OnInvalidSubmit="@InvalidSubmit">
+                        <DataAnnotationsValidator />
+                        <MudTextField T="string" @bind-Value="@_applicationUpdateVM.CoverLetter" Lines="10" Counter="1000" MaxLength="1000" Variant="Variant.Outlined" Validation="@(new Func<string, IEnumerable<string>>(MaxCharacters))" Immediate="true" Placeholder="Cover letter (optional)" Class="mt-4" />
+                        <MudButton Color="Color.Primary" Variant="Variant.Filled" ButtonType="ButtonType.Submit" Class="mt-4" FullWidth="true">Save Application</MudButton>
+                    </EditForm>
+                }
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+</MudContainer>
+
+@code {
+    bool _loggedIn = false;
+    bool _loggingIn = true;
+    bool _loading = true;
+    int _userId;
+    string _userRole;
+    [Parameter] public int _companyId { get; set; }
+    [Parameter] public int _adId { get; set; }
+    [Parameter] public int _applicationId { get; set; }
+
+    bool _isCompany = false;
+    bool _isCandidate = false;
+    bool _isAdmin = false;
+
+    bool _applicationNotFound = false;
+
+    Ad _ad;
+    Application application;
+    HttpClient client;
+    CoverLetterVM _applicationUpdateVM = new CoverLetterVM();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await TokenAuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        _loggedIn = authState.User.Identity.IsAuthenticated;
+        client = ClientFactory.CreateClient("httpClient");
+
+        if (_loggedIn)
+        {
+            _userId = int.Parse(user.FindFirst("nameid")?.Value ?? "-1");
+            _userRole = user.FindFirst("role")?.Value ?? "candidate";
+
+            if (_userRole == "company")
+            {
+                _isCompany = true;
+            }
+            else if (_userRole == "candidate")
+            {
+                _isCandidate = true;
+            }
+            else if (_userRole == "admin")
+            {
+                _isCompany = true;
+                _isCandidate = true;
+                _isAdmin = true;
+            }
+        }
+        else
+        {
+            await DialogService.ShowMessageBox("Error", "You must be logged in as a candidate to update this application.");
+            Navigate.NavigateTo("/");
+            return;
+        }
+        _loggingIn = false;
+
+        // Retrieve ad
+        var response = await client.GetAsync($"api/companies/{_companyId}/ads/{_adId}");
+        if (response == null || response.StatusCode != System.Net.HttpStatusCode.OK)
+        {
+            _applicationNotFound = true;
+            return;
+        }
+        else
+        {
+            _ad = await response.Content.ReadFromJsonAsync<Ad>();
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender && client.DefaultRequestHeaders.Authorization == null)
+        {
+            var token = await TokenAuthStateProvider.GetTokenRawAsync();
+            client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+            // Retrieve application
+            var response = await client.GetAsync($"api/companies/{_companyId}/ads/{_adId}/applications/{_applicationId}");
+            if (response != null && response.StatusCode == System.Net.HttpStatusCode.Unauthorized || response.StatusCode == System.Net.HttpStatusCode.Forbidden)
+            {
+                await DialogService.ShowMessageBox("Error", "You must be logged in as the owner of this application in order to update it.");
+                Navigate.NavigateTo("applications");
+                return;
+            }
+            else if (response == null || response.StatusCode != System.Net.HttpStatusCode.OK)
+            {
+                _applicationNotFound = true;
+                _loading = false;
+                return;
+            }
+            else
+            {
+                application = await response.Content.ReadFromJsonAsync<Application>();
+                _applicationUpdateVM.CoverLetter = application.CoverLetter;
+            }
+            _loading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task SubmitUpdateApplication()
+    {
+        try
+        {
+            var response = await client.PutAsJsonAsync($"api/companies/{_companyId}/ads/{_adId}/applications/{_applicationId}", _applicationUpdateVM);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                await DialogService.ShowMessageBox("Error", "An error occurred while updating application.");
+            }
+            else
+            {
+                await DialogService.ShowMessageBox("Success", "You have successfully updated your application.");
+                Navigate.NavigateTo("/applications");
+            }
+        }
+        catch (Exception ex)
+        {
+            await DialogService.ShowMessageBox("Error", $"An error occurred: {ex.Message}");
+        }
+    }
+
+    private async Task InvalidSubmit()
+    {
+        await DialogService.ShowMessageBox("Error", "Please correct any missing fields before saving.");
+    }
+
+
+    private IEnumerable<string> MaxCharacters(string ch)
+    {
+        if (!string.IsNullOrEmpty(ch) && 1000 < ch?.Length)
+            yield return "Max 1000 characters";
+    }
+}

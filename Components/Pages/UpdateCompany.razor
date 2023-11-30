@@ -25,14 +25,14 @@
                 }
                 else
                 {
-                    <MudText Typo="Typo.h5" Class="pa-4">Update Ad</MudText>
+                    <MudText Typo="Typo.h5" Class="pa-4">Update Company</MudText>
                     <EditForm Model="@_companyUpdateVM" OnValidSubmit="@SubmitUpdateCompany" OnInvalidSubmit="@InvalidSubmit">
                         <DataAnnotationsValidator />
                         <MudTextField T="string" Label="Company Name" Variant="Variant.Outlined" Counter="75" MaxLength="75" Immediate="true" Validation="@(new Func<string, IEnumerable<string>>(MaxCompanyNameCharacters))" @bind-Value="@_companyUpdateVM.Company" Required="true" FullWidth="true" />
                         <MudTextField T="string" Label="Company Description" Counter="1000" MaxLength="1000" Variant="Variant.Outlined" Validation="@(new Func<string,  IEnumerable<string>>(MaxCompanyDescriptionCharacters))" Immediate="true"
                                       Placeholder="Company Description (required)" @bind-Value="@_companyUpdateVM.CompanyDescription" FullWidth="true" Lines="15" Required="true" Class="mt-6" />
                         <MudTextField T="string" Label="Industry" Variant="Variant.Outlined" Counter="50" MaxLength="50" Immediate="true" Validation="@(new Func<string, IEnumerable<string>>(MaxIndustryCharacters))" @bind-Value="@_companyUpdateVM.Industry" Required="true" FullWidth="true" />
-                        <MudTextField T="string" Label="Website" Variant="Variant.Outlined" Counter="50" MaxLength="50" Immediate="true" Validation="@(new Func<string, IEnumerable<string>>(MaxWebsiteCharacters))" @bind-Value="@_companyUpdateVM.Website" FullWidth="true" Class="mt-6" />
+                        <MudTextField T="string" InputType="InputType.Url" Label="Website" Variant="Variant.Outlined" Counter="50" MaxLength="50" Immediate="true" Validation="@(new Func<string, IEnumerable<string>>(MaxWebsiteCharacters))" @bind-Value="@_companyUpdateVM.Website" FullWidth="true" Class="mt-6" />
                         <MudButton ButtonType="ButtonType.Submit" Color="Color.Primary" Variant="Variant.Filled" Class="mt-6" FullWidth="true">Save</MudButton>
                     </EditForm>
                 }
@@ -69,6 +69,13 @@
             _userId = int.Parse(user.FindFirst("nameid")?.Value ?? "-1");
             _userRole = user.FindFirst("role")?.Value ?? "candidate";
 
+            if (_userId != _companyId)
+            {
+                await DialogService.ShowMessageBox("Error", "You must be logged in as the company to update this job.");
+                Navigate.NavigateTo("/companies");
+                return;
+            }
+
             if (_userRole == "company")
             {
                 _isCompany = true;
@@ -94,9 +101,9 @@
 
         // Retrieve company
         var response = await client.GetAsync($"api/companies/{_companyId}/");
-        if (response == null || response.StatusCode != System.Net.HttpStatusCode.OK)
+        if (response.StatusCode != System.Net.HttpStatusCode.OK)
         {
-            await DialogService.ShowMessageBox("Error", "You must be logged in as this company in order to update it.");
+            await DialogService.ShowMessageBox("Error", "Company not found.");
             Navigate.NavigateTo("/companies");
             return;
         }
