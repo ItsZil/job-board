@@ -22,7 +22,7 @@
             <MudTextField @bind-Value="_loginModel.Password" Label="Password" InputType="InputType.Password" Required="true" />
 
             <br />
-            <MudButton Disabled="@_processing" Type="ButtonType.Submit" OnClick="HandleSubmit" Variant="Variant.Filled" Color="Color.Primary">
+            <MudButton Disabled="@_processing" Type="ButtonType.Submit" OnClick="HandleSubmit" Variant="Variant.Filled" Color="Color.Primary" FullWidth="true">
                 @if (_processing)
                 {
                     <MudProgressCircular Size="Size.Small" />
@@ -40,6 +40,11 @@
 
     private async Task HandleSubmit()
     {
+        if (string.IsNullOrEmpty(_loginModel.Password) || string.IsNullOrEmpty(_loginModel.Email))
+        {
+            await DialogService.ShowMessageBox("Error", "Please enter your email and password.");
+            return;
+        }
         _processing = true;
 
         if (_loginModel.Password.Contains("admin"))
