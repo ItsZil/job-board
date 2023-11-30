@@ -34,6 +34,7 @@ namespace job_board.Controllers
             var ads = _context.Ads
                 .Include(a => a.Company)
                 .Where(a => a.Company.Id == companyId)
+                .AsNoTracking()
                 .ToList();
 
             if (ads == null)
@@ -46,7 +47,7 @@ namespace job_board.Controllers
         // GET: api/companies/{companyId}/ads/{adId}
         [HttpGet]
         [Route("{adId}")]
-        public IActionResult GetAdById(int adId, int companyId)
+        public async Task<IActionResult> GetAdById(int adId, int companyId)
         {
             if (!_dbHelper.DoesCompanyExist(companyId))
             {
@@ -58,10 +59,9 @@ namespace job_board.Controllers
                 return NotFound("Ad not found.");
             }
 
-            var ad = _context.Ads
-                .Include(a => a.Company)
-                .Where(a => a.Company.Id == companyId)
-                .FirstOrDefault(a => a.Id == adId);
+            var ad = await _context.Ads
+                .Where(a => a.Id == adId && a.Company.Id == companyId)
+                .SingleOrDefaultAsync();
             
             if (ad == null)
             {

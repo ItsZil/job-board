@@ -67,11 +67,16 @@ namespace job_board.Utilities
                     {
                         await SetTokenAsync(string.Empty);
                     }
+                    else
+                    {
+                        // Token is not expired
+                        claimsIdentity = new ClaimsIdentity(claims, "jwt");
+                    }
                 }
                 else
                 {
-                    // Token is not expired
-                    claimsIdentity = new ClaimsIdentity(claims, "jwt");
+                    // Expired
+                    await SetTokenAsync(string.Empty);
                 }
             }
             return new AuthenticationState(new ClaimsPrincipal(claimsIdentity));

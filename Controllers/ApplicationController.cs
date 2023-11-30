@@ -39,68 +39,42 @@ namespace job_board.Controllers
                 return NotFound("Ad not found.");
             }
 
-            if (User.IsInRole("candidate"))
+            var userId = AuthHelper.GetUserId(User);
+            var isCandidate = User.IsInRole("candidate");
+            var isCompany = User.IsInRole("company");
+
+            if (isCompany && User.FindFirstValue(ClaimTypes.NameIdentifier) != companyId.ToString())
             {
-                // Retrieve this candidate's applications
-                var applications = _context.Applications
-                    .Include(a => a.Candidate)
-                    .Include(a => a.Ad)
-                    .Where(a => a.Candidate.Id == AuthHelper.GetUserId(User))
-                    .Where(a => a.Ad.Id == adId)
-                    .Where(a => a.Ad.Company.Id == companyId)
-                    .AsSplitQuery()
-                    .ToList();
-
-                List<ApplicationResponseVM> applicationResponses = new List<ApplicationResponseVM>();
-                foreach (var app in applications)
-                {
-                    var applicationResponse = new ApplicationResponseVM
-                    {
-                        Id = app.Id,
-                        AdId = app.Ad.Id,
-                        ApplicationDate = app.ApplicationDate,
-                        CoverLetter = app.CoverLetter,
-                        PhoneNumber = app.Candidate.Phone
-                    };
-                    applicationResponses.Add(applicationResponse);
-                }
-                return Ok(applicationResponses);
+                return Forbid();
             }
-            else
+
+            if (!_dbHelper.DoesCompanyAdExist(companyId, adId))
             {
-
-                if (User.IsInRole("company") && User.FindFirstValue(ClaimTypes.NameIdentifier) != companyId.ToString())
-                {
-                    return Forbid();
-                }
-
-                if (!_dbHelper.DoesCompanyAdExist(companyId, adId))
-                {
-                    return Forbid();
-                }
-
-                var applications = _context.Applications
-                    .Include(a => a.Candidate)
-                    .Include(a => a.Ad)
-                    .Where(a => a.Ad.Company.Id == companyId && a.Ad.Id == adId)
-                    .AsSplitQuery()
-                    .ToList();
-
-                List<ApplicationResponseVM> applicationResponses = new List<ApplicationResponseVM>();
-                foreach (var app in applications)
-                {
-                    var applicationResponse = new ApplicationResponseVM
-                    {
-                        Id = app.Id,
-                        AdId = app.Ad.Id,
-                        ApplicationDate = app.ApplicationDate,
-                        CoverLetter = app.CoverLetter,
-                        PhoneNumber = app.Candidate.Phone
-                    };
-                    applicationResponses.Add(applicationResponse);
-                }
-                return Ok(applicationResponses);
+                return Forbid();
             }
+
+            var applicationsQuery = _context.Applications
+                .Where(a => a.Ad.Id == adId && a.Ad.Company.Id == companyId)
+                .AsNoTracking();
+
+            if (isCandidate)
+            {
+                applicationsQuery = applicationsQuery.Where(a => a.Candidate.Id == userId);
+            }
+
+            var applicationResponses = applicationsQuery
+                .Select(app => new ApplicationResponseVM
+                {
+                    Id = app.Id,
+                    AdId = app.Ad.Id,
+                    ApplicationDate = app.ApplicationDate,
+                    CoverLetter = app.CoverLetter,
+                    PhoneNumber = app.Candidate.Phone
+                })
+                .AsNoTracking()
+                .ToList();
+
+            return Ok(applicationResponses);
         }
 
         // GET: api/companies/{companyId}/ads/{adId}/applications/{appId}
@@ -129,6 +103,7 @@ namespace job_board.Controllers
                 .Include(a => a.Ad)
                 .ThenInclude(a => a.Company)
                 .AsSplitQuery()
+                .AsNoTracking()
                 .FirstOrDefault(a => a.Id == appId);
             
             if (app == null)

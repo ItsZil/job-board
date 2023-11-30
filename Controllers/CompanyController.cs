@@ -27,13 +27,9 @@ namespace job_board.Controllers
         public IActionResult GetAllCompanies()
         {
             var employers = _context.Companies
+                .AsNoTracking()
                 .ToList();
 
-            if (employers == null)
-            {
-                return NotFound("No companies found.");
-            }
-            
             return Ok(employers);
         }
 
