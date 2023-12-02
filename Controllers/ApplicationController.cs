@@ -177,22 +177,15 @@ namespace job_board.Controllers
                 CoverLetter = candidateApp.CoverLetter
             };
             
-            try
-            {
-                _context.Applications.Add(candidateApplication);
-                await _context.SaveChangesAsync();
+            _context.Applications.Add(candidateApplication);
+            await _context.SaveChangesAsync();
 
-                var response = new {
-                    candidateApplication.Id,
-                    candidateApplication.CoverLetter,
-                    candidateApplication.ApplicationDate
-                };
-                return Created(string.Empty, response);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ex.Message);
-            }
+            var response = new {
+                candidateApplication.Id,
+                candidateApplication.CoverLetter,
+                candidateApplication.ApplicationDate
+            };
+            return Created(string.Empty, response);
         }
 
         // PUT: api/companies/{companyId}/ads/{adId}/applications/{appId}
@@ -230,22 +223,15 @@ namespace job_board.Controllers
             }
 
             app.CoverLetter = candidateApp.CoverLetter;
-            try
-            {
-                _context.Applications.Update(app);
-                await _context.SaveChangesAsync();
+            _context.Applications.Update(app);
+            await _context.SaveChangesAsync();
 
-                var updateResponse = new {
-                    app.Id,
-                    app.CoverLetter,
-                    app.ApplicationDate,
-                };
-                return Ok(updateResponse);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ex.Message);
-            }
+            var updateResponse = new {
+                app.Id,
+                app.CoverLetter,
+                app.ApplicationDate,
+            };
+            return Ok(updateResponse);
         }
 
         // DEL: api/companies/{companyId}/ads/{adId}/applications/{appId}
@@ -285,16 +271,9 @@ namespace job_board.Controllers
                 return Forbid();
             }
 
-            try
-            {
-                _context.Applications.Remove(app);
-                await _context.SaveChangesAsync();
-                return NoContent();
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ex.Message);
-            }
+            _context.Applications.Remove(app);
+            await _context.SaveChangesAsync();
+            return NoContent();
         }
     }
 }

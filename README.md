@@ -162,3 +162,384 @@ Pavyzdžiui, darbdavys negali pretenduoti į darbo skelbimus, o darbo ieškotoja
 ![Kandidatūros peržiūra (darbdavys)](https://i.imgur.com/XcyhHeD.png)
 
 ![Kandidatūros peržiūra (darbdavys)](https://i.imgur.com/yo9uUVv.png)
+
+# 4. API specifikacija
+
+## 4.1 CompanyController
+
+| URL           | Metodas | Autentifikacija | Užklausos formatas | Atsakymo formatas | Atsako kodai |
+| ------------- | ------------- | ------------- | ------------- | ------------- | ------------- |
+| api/companies  | GET | Ne | Nėra  | JSON | 200 OK |
+
+Grąžina visų įmonių sąrašą. 
+
+Užklausa: GET api/companies
+
+Atsakymas (200 OK):
+```
+[
+    {
+        "id": 1,
+        "email": "elandes0@mtv.com",
+        "companyName": "Company1",
+        "companyDescription": "string",
+        "industry": "string",
+        "website": "string"
+    },
+    {
+        "id": 2,
+        "email": "ifishbourn1@cornell.edu",
+        "companyName": "Company2",
+        "companyDescription": "Bladder sphincterotomy",
+        "industry": "Oil & Gas Production",
+        "website": "http://cbslocal.com/morbi.jsp"
+    }
+]
+```
+
+***
+
+| URL           | Metodas | Autentifikacija | Užklausos formatas | Atsakymo formatas | Atsako kodai |
+| ------------- | ------------- | ------------- | ------------- | ------------- | ------------- |
+| api/companies/companyId  | GET | Ne | Nėra  | JSON | 200 OK, 400 Bad Request, 404 Not Found |
+
+Grąžina vieną įmonę, kurios ID yra companyId.
+
+Užklausa: GET api/companies/1
+
+Atsakymas (200 OK):
+```
+{
+    "id": 6,
+    "email": "wbuzin5@example.com",
+    "companyName": "Company6",
+    "companyDescription": "Remov imp dev-chest cage",
+    "industry": "Publishing",
+    "website": "https://creativecommons.org/sociis.png"
+}
+```
+
+***
+
+| URL           | Metodas | Autentifikacija | Užklausos formatas | Atsakymo formatas | Atsako kodai |
+| ------------- | ------------- | ------------- | ------------- | ------------- | ------------- |
+| api/companies  | POST | Taip (admin) | JSON  | JSON | 201 Created, 400 Bad Request, 401 Unauthorized, 403 Forbidden |
+
+Sukuria naują įmonę, naudojant duomenims iš užklausos.
+
+Užklausa: POST api/companies
+```
+{
+  "companyName": "Test Creation Company",
+  "email": "test@gmail.com",
+  "industry": "Testing",
+  "password": "test",
+  "companyDescription": "Test"
+}
+```
+
+Atsakymas (201 Created):
+```
+{
+    "id": 6,
+    "email": "wbuzin5@example.com",
+    "companyName": "Company6",
+    "companyDescription": "Remov imp dev-chest cage",
+    "industry": "Publishing",
+    "website": "https://creativecommons.org/sociis.png"
+}
+```
+
+***
+
+| URL           | Metodas | Autentifikacija | Užklausos formatas | Atsakymo formatas | Atsako kodai |
+| ------------- | ------------- | ------------- | ------------- | ------------- | ------------- |
+| api/companies/companyId  | PUT | Taip (company, admin) | JSON  | JSON | 200 OK, 400 Bad Request, 401 Unauthorized, 403 Forbidden, 404 Not Found |
+
+Atnaujina įmonę, kurios ID yra companyId, o nauji duomenys yra pateikiami užklausoje.
+
+Užklausa: POST api/companies
+```
+{
+  "company": "New Company Name",
+  "industry": "New Industry",
+  "companyDescription": "New Descritpion"
+}
+```
+
+Atsakymas (200 OK):
+```
+{
+    "id": 17,
+    "email": "test@gmail.com",
+    "companyName": "New Company Name",
+    "companyDescription": "New Descritpion",
+    "industry": "New Industry",
+    "website": null
+}
+```
+
+***
+
+| URL           | Metodas | Autentifikacija | Užklausos formatas | Atsakymo formatas | Atsako kodai |
+| ------------- | ------------- | ------------- | ------------- | ------------- | ------------- |
+| api/companies/companyId  | DELETE | Taip (company, admin) | Nėra  | JSON | 204 No Content, 400 Bad Request, 401 Unauthorized, 403 Forbidden, 404 Not Found |
+
+Ištrina įmonę, kurios ID yra companyId.
+
+Užklausa: DELETE api/companies/17
+
+Atsakymas: 204 No Content
+
+## 4.2 AdController
+
+| URL           | Metodas | Autentifikacija | Užklausos formatas | Atsakymo formatas | Atsako kodai |
+| ------------- | ------------- | ------------- | ------------- | ------------- | ------------- |
+| api/companies/companyId/ads  | GET | Ne | Nėra  | JSON | 200 OK, 400 Bad Request, 404 Not Found |
+
+Grąžina visų skelbimų, priklausančių įmonei, kurios ID yra companyId, sąrašą.
+
+Užklausa: GET api/companies/1/ads
+
+Atsakymas (200 OK):
+```
+[
+    {
+        "id": 11,
+        "title": "Civil Engineer",
+        "description": "Morbi vel lectus in quam fringilla rhoncus. Mauris enim leo, rhoncus sed, vestibulum sit amet, cursus id, turpis. Integer aliquet, massa id lobortis convallis, tortor risus dapibus augue, vel accumsan tellus nisi eu orci. Mauris lacinia sapien quis libero. Nullam sit amet turpis elementum ligula vehicula consequat. Morbi a ipsum. Integer a nibh. In quis justo. Maecenas rhoncus aliquam lacus. Morbi quis tortor id nulla ultrices aliquet. Maecenas leo odio, condimentum id, luctus nec, molestie sed, justo. Pellentesque viverra pede ac diam.",
+        "salaryFrom": "1981",
+        "salaryTo": "3167",
+        "location": "Tangzhai",
+        "postedDate": "2023-07-17T00:00:00",
+        "company": {
+            "id": 1,
+            "email": "elandes0@mtv.com",
+            "companyName": "Company1",
+            "companyDescription": "string",
+            "industry": "string",
+            "website": "string"
+        }
+    }
+]
+```
+
+***
+
+| URL           | Metodas | Autentifikacija | Užklausos formatas | Atsakymo formatas | Atsako kodai |
+| ------------- | ------------- | ------------- | ------------- | ------------- | ------------- |
+| api/companies/companyId/ads/adId  | GET | Ne | Nėra  | JSON | 200 OK, 400 Bad Request, 404 Not Found |
+
+Grąžina vieno skelbimo, kurio ID yra adId, priklausančio įmonei su ID companyId, duomenis.
+
+Užklausa: GET api/companies/1/ads/11
+
+Atsakymas (200 OK):
+```
+[
+    {
+        "id": 11,
+        "title": "Civil Engineer",
+        "description": "Morbi vel lectus in quam fringilla rhoncus. Mauris enim leo, rhoncus sed, vestibulum sit amet, cursus id, turpis. Integer aliquet, massa id lobortis convallis, tortor risus dapibus augue, vel accumsan tellus nisi eu orci. Mauris lacinia sapien quis libero. Nullam sit amet turpis elementum ligula vehicula consequat. Morbi a ipsum. Integer a nibh. In quis justo. Maecenas rhoncus aliquam lacus. Morbi quis tortor id nulla ultrices aliquet. Maecenas leo odio, condimentum id, luctus nec, molestie sed, justo. Pellentesque viverra pede ac diam.",
+        "salaryFrom": "1981",
+        "salaryTo": "3167",
+        "location": "Tangzhai",
+        "postedDate": "2023-07-17T00:00:00",
+        "company": {
+            "id": 1,
+            "email": "elandes0@mtv.com",
+            "companyName": "Company1",
+            "companyDescription": "string",
+            "industry": "string",
+            "website": "string"
+        }
+    }
+]
+```
+
+***
+
+| URL           | Metodas | Autentifikacija | Užklausos formatas | Atsakymo formatas | Atsako kodai |
+| ------------- | ------------- | ------------- | ------------- | ------------- | ------------- |
+| api/companies/companyId/ads/adId  | POST | Taip (company, admin) | JSON  | JSON | 201 Created, 400 Bad Request, 401 Unauthorized, 403 Forbidden, 404 Not Found |
+
+Sukuria naują skelbimą, priklausančią įmonei, kurios ID yra companyId, naudojant duomenims iš užklausos.
+
+Užklausa: POST api/companies/1/ads
+```
+{
+  "location": "Kaunas",
+  "salaryFrom": "1234",
+  "salaryTo": "4321",
+  "title": "Job Title",
+  "description": "Ad description"
+}
+```
+
+Atsakymas (201 Created):
+```
+{
+    "id": 35,
+    "title": "Job Title",
+    "description": "Ad description",
+    "salaryFrom": "1234",
+    "salaryTo": "4321",
+    "location": "Kaunas",
+    "postedDate": "2023-12-02T19:19:36.238157+00:00"
+}
+```
+
+***
+
+| URL           | Metodas | Autentifikacija | Užklausos formatas | Atsakymo formatas | Atsako kodai |
+| ------------- | ------------- | ------------- | ------------- | ------------- | ------------- |
+| api/companies/companyId/ads/adId  | PUT | Taip (company, admin) | JSON  | JSON | 200 OK, 400 Bad Request, 401 Unauthorized, 403 Forbidden, 404 Not Found |
+
+Atnaujina skelbimą, kurio ID yra adId, priklausančią įmonei, kurios ID yra companyId, naudojant duomenims iš užklausos.
+
+Užklausa: PUT api/companies/1/ads/35
+```
+{
+  "location": "New location",
+  "salaryFrom": "123",
+  "salaryTo": "321",
+  "title": "New job title",
+  "description": "New description"
+}
+```
+
+Atsakymas (200 OK):
+```
+{
+    "id": 35,
+    "title": "New job title",
+    "description": "New description",
+    "salaryFrom": "123",
+    "salaryTo": "321",
+    "location": "New location",
+    "postedDate": "2023-12-02T19:21:11.3909401+00:00"
+}
+```
+
+***
+
+| URL           | Metodas | Autentifikacija | Užklausos formatas | Atsakymo formatas | Atsako kodai |
+| ------------- | ------------- | ------------- | ------------- | ------------- | ------------- |
+| api/companies/companyId/ads/adId  | DELETE | Taip (company, admin) | Nėra  | JSON | 204 No Content, 400 Bad Request, 401 Unauthorized, 403 Forbidden, 404 Not Found |
+
+Ištrina skelbimą, kurio ID yra adId, priklausančią įmonei, kurios ID yra companyId.
+
+Užklausa: DELETE api/companies/1/ads/35
+
+Atsakymas: 204 No Content
+
+## 4.3 ApplicationController
+
+| URL           | Metodas | Autentifikacija | Užklausos formatas | Atsakymo formatas | Atsako kodai |
+| ------------- | ------------- | ------------- | ------------- | ------------- | ------------- |
+| api/companies/companyId/ads/adId/applications  | GET | Taip | Nėra  | JSON | 200 OK, 400 Bad Request, 404 Not Found |
+
+Grąžina visų kandidatūrų, priklausančių skelbimui, kurio ID yra adId, priklausančio įmonei su ID companyId, sąrašą.
+
+Užklausa: GET api/companies/1/ads/11/applications
+
+Atsakymas (200 OK):
+```
+[
+    {
+        "id": 1,
+        "adId": 11,
+        "applicationDate": "2023-09-29T22:12:45.393",
+        "coverLetter": "Test cover letter",
+        "phoneNumber": "+48-588-325-3178"
+    },
+    {
+        "id": 2,
+        "adId": 11,
+        "applicationDate": "2023-09-29T22:13:07.693",
+        "coverLetter": "Test cover letter",
+        "phoneNumber": "+48-588-325-3178"
+    }
+]
+```
+
+***
+
+| URL           | Metodas | Autentifikacija | Užklausos formatas | Atsakymo formatas | Atsako kodai |
+| ------------- | ------------- | ------------- | ------------- | ------------- | ------------- |
+| api/companies/companyId/ads/adId/applications/appId  | GET | Taip | Nėra  | JSON | 200 OK, 400 Bad Request, 404 Not Found |
+
+Grąžina kandidatūros, kurios ID yra appId, priklausančiai skelbimui, kurio ID yra adId, priklausančio įmonei su ID companyId.
+
+Užklausa: GET api/companies/1/ads/11/applications/1
+
+Atsakymas (200 OK):
+```
+{
+    "id": 1,
+    "applicationDate": "2023-09-29T22:12:45.393",
+    "coverLetter": "Test cover letter"
+}
+```
+
+***
+
+| URL           | Metodas | Autentifikacija | Užklausos formatas | Atsakymo formatas | Atsako kodai |
+| ------------- | ------------- | ------------- | ------------- | ------------- | ------------- |
+| api/companies/companyId/ads/adId/applications | POST | Taip (candidate, admin) | JSON  | JSON | 201 Created, 400 Bad Request, 404 Not Found |
+
+Sukuria naują kandidatūrą, priklausančią skelbimui, kurio ID yra adId, priklausančio įmonei su ID companyId, naudojant duomenims iš užklausos.
+
+Užklausa: POST api/companies/1/ads/11/applications
+```
+{
+  "coverLetter": "optional cover letter"
+}
+```
+
+Atsakymas (201 Created):
+```
+{
+    "id": 31,
+    "coverLetter": "optional cover letter",
+    "applicationDate": "2023-12-02T19:28:02.4865391+00:00"
+}
+```
+
+***
+
+| URL           | Metodas | Autentifikacija | Užklausos formatas | Atsakymo formatas | Atsako kodai |
+| ------------- | ------------- | ------------- | ------------- | ------------- | ------------- |
+| api/companies/companyId/ads/adId/applications/appId | PUT | Taip (candidate, admin) | JSON  | JSON | 200 OK, 400 Bad Request, 404 Not Found |
+
+Atnaujina kandidatūrą, kurios ID yra appId, priklausančią skelbimui, kurio ID yra adId, priklausančio įmonei su ID companyId, naudojant duomenims iš užklausos.
+
+Užklausa: PUT api/companies/1/ads/11/applications/31
+```
+{
+  "coverLetter": "Updated cover letter"
+}
+```
+
+Atsakymas (200 OK):
+```
+{
+    "id": 31,
+    "coverLetter": "Updated cover letter",
+    "applicationDate": "2023-12-02T19:28:02.487"
+}
+```
+
+***
+
+| URL           | Metodas | Autentifikacija | Užklausos formatas | Atsakymo formatas | Atsako kodai |
+| ------------- | ------------- | ------------- | ------------- | ------------- | ------------- |
+| api/companies/companyId/ads/adId/applications/appId | DELETE | Taip (candidate, admin) | Nėra  | JSON | 204 No Content, 400 Bad Request, 404 Not Found |
+
+Ištrina kandidatūrą, kurios ID yra appId, priklausančią skelbimui, kurio ID yra adId, priklausančio įmonei su ID companyId.
+
+Užklausa: DELETE api/companies/1/ads/11/applications/31
+
+Atsakymas: 204 No Content
+
+# 5. Išvados

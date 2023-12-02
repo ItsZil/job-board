@@ -37,10 +37,6 @@ namespace job_board.Controllers
                 .AsNoTracking()
                 .ToList();
 
-            if (ads == null)
-            {
-                return NotFound("Ad not found.");
-            }
             return Ok(ads);
         }
 

@@ -72,17 +72,10 @@ namespace job_board.Controllers
                 Password = hashedPasswordAndSalt.hashedPassword
             };
 
-            try
-            {
-                _context.Companies.Add(company);
-                await _context.SaveChangesAsync();
+            _context.Companies.Add(company);
+            await _context.SaveChangesAsync();
 
-                return Created(string.Empty, _context.Companies.Find(company.Id));
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ex.Message);
-            }
+            return Created(string.Empty, _context.Companies.Find(company.Id));
         }
 
         // PUT: api/companies/{companyId}
