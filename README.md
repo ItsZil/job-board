@@ -1,3 +1,20 @@
+# Tūrinys
+
+- [1. Sprendžiamo uždavinio aprašymas](#1-sprendžiamo-uždavinio-aprašymas)
+  * [1.1. Sistemos paskirtis](#11-sistemos-paskirtis)
+  * [1.2. Funkciniai reikalavimai](#12-funkciniai-reikalavimai)
+- [2. Sistemos architektūra](#2-sistemos-architektūra)
+- [3. Sistemos implementacija](#3-sistemos-implementacija)
+- [3.1 Sistemos struktūra](#31-sistemos-struktūra)
+- [4. Naudotojo sąsajos projektas](#4-naudotojo-sąsajos-projektas)
+- [5. API specifikacija](#5-api-specifikacija)
+  * [5.1 CompanyController](#51-companycontroller)
+  * [5.2 AdController](#52-adcontroller)
+  * [5.3 ApplicationController](#53-applicationcontroller)
+- [6. Išvados](#6-išvados)
+
+&nbsp;
+
 # 1. Sprendžiamo uždavinio aprašymas
 
 ## 1.1. Sistemos paskirtis 
@@ -6,6 +23,7 @@ Sistema skirta supaprastinti darbo paieškos bei darbuotojų samdymo procesą, v
 Sistema bus sudaryta iš dvejų dalių. Pirmoji dalis yra internetinė aplikacija, kuria naudosis visi sistemos naudotojai. Antra sistemos dalis yra aplikacijų programavimo sąsaja (angl. trump. API).
 
 Internetinėje aplikacijoje bus galima peržiūrėti visus tuo metu esančius darbo skelbimus, kuriuos įkelia prie sistemos prisiregistravę darbdaviai. Įkeliant naują darbo skelbimą, būtina pateikti pavadinimą, aprašymą, atlyginimo rėžius, bei vietovę. Darbo ieškotojui norint pretenduoti į poziciją, jam būtina prisijungti prie sistemos.
+
 ## 1.2. Funkciniai reikalavimai
 Svečias sistemoje galės:
 1. Peržiūrėti darbo skelbimus;
@@ -40,9 +58,9 @@ Sistema sudaryta iš dvejų dalių:
 
 ![Diegimo diagrama](https://i.imgur.com/hFYG8yN.png)
 
-# 2. Sistemos implementacija
+# 3. Sistemos implementacija
 
-# 2.1 Sistemos struktūra
+# 3.1 Sistemos struktūra
 
 Serverio pusė sudaryta iš šių kontrolerių:
 - AdController - atsakingas už darbo skelbimų CRUD ir kitas operacijas;
@@ -53,119 +71,119 @@ Autorizacijai ir autentifikacijai naudojama JWT (JSON Web Token) technologija. K
 Darbo ieškotojas ir darbdavys turi skirtingą rolę, kuri saugojama JWT žetone. Ne visos sistemos operacijos yra leidžiamos darbo ieškotojui ir darbdaviui. 
 Pavyzdžiui, darbdavys negali pretenduoti į darbo skelbimus, o darbo ieškotojas negali kurti darbo skelbimų.
 
-# 3. Naudotojo sąsajos projektas
+# 4. Naudotojo sąsajos projektas
 
-## 3.1 Prisijungimas
+## 4.1 Prisijungimas
 
 ![Prisijungimas](https://i.imgur.com/Gnzy2AY.png)
 
 ![Prisijungimas](https://i.imgur.com/CB2dZze.png)
 
-## 3.2. Pradinis puslapis (svečio)
+## 4.2. Pradinis puslapis (svečio)
 
 ![Pradinis puslapis (svečio)](https://i.imgur.com/WIUbAMY.png)
 
 ![Pradinis puslapis (svečio)](https://i.imgur.com/fNJecnU.png)
 
-## 3.3. Pradinis puslapis (darbo ieškotojo)
+## 4.3. Pradinis puslapis (darbo ieškotojo)
 
 ![Pradinis puslapis (darbo ieškotojo)](https://i.imgur.com/gvBAhTH.png)
 
 ![Pradinis puslapis (darbo ieškotojo)](https://i.imgur.com/TC3AeXp.png)
 
-## 3.4. Pradinis puslapis (darbdavio)
+## 4.4. Pradinis puslapis (darbdavio)
 
 ![Pradinis puslapis (darbdavio)](https://i.imgur.com/4YlwEFJ.png)
 
 ![Pradinis puslapis (darbdavio)](https://i.imgur.com/rJiM1cd.png)
 
-## 3.5. Darbo skelbimų sąrašas
+## 4.5. Darbo skelbimų sąrašas
 
 ![Darbo skelbimų sąrašas](https://i.imgur.com/vvz9yGV.png)
 
 ![Darbo skelbimų sąrašas](https://i.imgur.com/EQX1Iq3.png)
 
-## 3.6. Darbo skelbimo peržiūra
+## 4.6. Darbo skelbimo peržiūra
 
 ![Darbo skelbimo peržiūra](https://i.imgur.com/vAH2qmI.png)
 
 ![Darbo skelbimo peržiūra](https://i.imgur.com/YeLTUe1.png)
 
-## 3.7. Pretendavimas į darbo skelbimą
+## 4.7. Pretendavimas į darbo skelbimą
 
 ![Pretendavimas į darbo skelbimą](https://i.imgur.com/5kdYW1h.png)
 
 ![Pretendavimas į darbo skelbimą](https://i.imgur.com/n93FulR.png)
 
-## 3.8. Darbo skelbimo peržiūra (savininkas)
+## 4.8. Darbo skelbimo peržiūra (savininkas)
 
 ![Darbo skelbimo peržiūra (savininkas)](https://i.imgur.com/M2hkdts.png)
 
 ![Darbo skelbimo peržiūra (savininkas)](https://i.imgur.com/eQ8OqIz.png)
 
-## 3.9. Darbo skelbimo redagavimas
+## 4.9. Darbo skelbimo redagavimas
 
 ![Darbo skelbimo redagavimas](https://i.imgur.com/2FID0Rz.png)
 
 ![Darbo skelbimo redagavimas](https://i.imgur.com/eQ8OqIz.png)
 
-## 3.10. Įmonių peržiūra
+## 4.10. Įmonių peržiūra
 
 ![Įmonių peržiūra](https://i.imgur.com/TCvNQRB.png)
 
 ![Įmonių peržiūra](https://i.imgur.com/unFnthJ.png)
 
-## 3.11. Įmonės peržiūra
+## 4.11. Įmonės peržiūra
 
 ![Įmonės peržiūra](https://i.imgur.com/vo4pXZO.png)
 
 ![Įmonės peržiūra](https://i.imgur.com/vMDGhUg.png)
 
-## 3.12. Įmonės peržiūra (savininkas)
+## 4.12. Įmonės peržiūra (savininkas)
 
 ![Įmonės peržiūra (savininkas)](https://i.imgur.com/eDVI4Y6.png)
 
 ![Įmonės peržiūra (savininkas)](https://i.imgur.com/Dc7BkB4.png)
 
-## 3.13. Įmonės redagavimas
+## 4.13. Įmonės redagavimas
 
 ![Įmonės redagavimas](https://i.imgur.com/RfLqCZt.png)
 
 ![Įmonės redagavimas](https://i.imgur.com/lz83tEB.png)
 
-## 3.14. Kandidatūrų sąrašas (darbo ieškotojas)
+## 4.14. Kandidatūrų sąrašas (darbo ieškotojas)
 
 ![Kandidatūrų sąrašas (darbo ieškotojas)](https://i.imgur.com/KDkxxxf.png)
 
 ![Kandidatūrų sąrašas (darbo ieškotojas)](https://i.imgur.com/LfO01rW.png)
 
-## 3.15. Kandidatūros peržiūra (darbo ieškotojas)
+## 4.15. Kandidatūros peržiūra (darbo ieškotojas)
 
 ![Kandidatūros peržiūra (darbo ieškotojas)](https://i.imgur.com/lBk0rAF.png)
 
 ![Kandidatūros peržiūra (darbo ieškotojas)](https://i.imgur.com/l93Cllu.png)
 
-## 3.16. Kandidatūros redagavimas
+## 4.16. Kandidatūros redagavimas
 
 ![Kandidatūros redagavimas](https://i.imgur.com/V2LLKzz.png)
 
 ![Kandidatūros redagavimas](https://i.imgur.com/YT8HPQM.png)
 
-## 3.17. Kandidatūrų sąrašas (darbdavys)
+## 4.17. Kandidatūrų sąrašas (darbdavys)
 
 ![Kandidatūrų sąrašas (darbdavys)](https://i.imgur.com/H7uVZ1Q.png)
 
 ![Kandidatūrų sąrašas (darbdavys)](https://i.imgur.com/fGqdsFB.png)
 
-## 3.18. Kandidatūros peržiūra (darbdavys)
+## 4.18. Kandidatūros peržiūra (darbdavys)
 
 ![Kandidatūros peržiūra (darbdavys)](https://i.imgur.com/XcyhHeD.png)
 
 ![Kandidatūros peržiūra (darbdavys)](https://i.imgur.com/yo9uUVv.png)
 
-# 4. API specifikacija
+# 5. API specifikacija
 
-## 4.1 CompanyController
+## 5.1 CompanyController
 
 | URL           | Metodas | Autentifikacija | Užklausos formatas | Atsakymo formatas | Atsako kodai |
 | ------------- | ------------- | ------------- | ------------- | ------------- | ------------- |
@@ -291,7 +309,7 @@ Užklausa: DELETE api/companies/17
 
 Atsakymas: 204 No Content
 
-## 4.2 AdController
+## 5.2 AdController
 
 | URL           | Metodas | Autentifikacija | Užklausos formatas | Atsakymo formatas | Atsako kodai |
 | ------------- | ------------- | ------------- | ------------- | ------------- | ------------- |
@@ -433,7 +451,7 @@ Užklausa: DELETE api/companies/1/ads/35
 
 Atsakymas: 204 No Content
 
-## 4.3 ApplicationController
+## 5.3 ApplicationController
 
 | URL           | Metodas | Autentifikacija | Užklausos formatas | Atsakymo formatas | Atsako kodai |
 | ------------- | ------------- | ------------- | ------------- | ------------- | ------------- |
@@ -542,4 +560,8 @@ Užklausa: DELETE api/companies/1/ads/11/applications/31
 
 Atsakymas: 204 No Content
 
-# 5. Išvados
+# 6. Išvados
+
+Darbo skelbimų svetainės inžinierinis projektas buvo pilnai įgyvendintas pagal iš anksto nusprestus reikalavimus. Tam atlikti buvo pasitelkta C# programavimo kalba bei HTML ir CSS žymėjimo kalbos. Taip pat buvo naudojamos ASP.NET Core, Entity Framework, Blazor ir MudBlazor technologijos, o debesyje buvo talpinama svetainė Azure App servise, bei duomenų bazė Azure SQL serveryje. Patirties su dalimi iš šių technologijų neturėta, todėl procesas nebuvo lengvas, ypač kuriant naudotojo sąsają.
+
+Įgyvendinimo procesas praplėtė esamas žinias apie saityno taikomųjų programų projektavimą, kurios bus naudingos ateityje asmeniniams projektams bei darbo rinkoje dirbant su panašiomis sistemomis. Nors ir sistema atitinka [1 skyriuje](#12-funkciniai-reikalavimai) aprašytus reikalavimus, prieš paleidžiant į rinką, reiktų praleisti papildomo laiko jos praplėtimui bei testavimui. 
