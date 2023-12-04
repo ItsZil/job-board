@@ -67,7 +67,7 @@
     [Parameter] public bool IsUserCompany { get; set; }
     [Parameter] public int UserId { get; set; }
 
-    private string _jobListHeight = "20vh";
+    private string _jobListHeight = "23vh";
 
     bool _error = false;
     string _errorText = "You must be the owner of this company to delete it.";
@@ -78,7 +78,7 @@
     protected override async Task OnInitializedAsync()
     {
         if (CompanyAds.Count == 1)
-            _jobListHeight = "11vh";
+            _jobListHeight = "14vh";
 
         client = ClientFactory.CreateClient("httpClient");
     }
