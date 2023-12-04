@@ -20,7 +20,7 @@ internal class Program
 
         builder.Configuration.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
 
-        var baseAddress = "https://localhost:7142";//builder.Configuration["Base_Address"];
+        var baseAddress = builder.Configuration["Base_Address"];
         builder.Services.AddHttpClient("httpClient", client =>
         {
             client.BaseAddress = new Uri(baseAddress);
