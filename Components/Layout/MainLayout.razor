@@ -14,10 +14,12 @@
         </MudHidden>
         <MudButton Variant="Variant.Text" Class="ml-3" Href="/"><MudText Typo="Typo.h5" Style="color:white">Job Board</MudText></MudButton>
         <MudHidden Breakpoint="Breakpoint.SmAndDown">
-            <MudButton Href="/" Style="color:white">Home</MudButton>
-            <MudButton Href="/jobs" Style="color:white">Browse Jobs</MudButton>
-            <MudButton Href="/companies" Style="color:white">Browse Companies</MudButton>
-            <MudButton Href="/applications" Style="color:white">Applications</MudButton>
+            <div style="display: flex; flex-direction: row;">
+                <MudButton Href="/" Style="color:white">Home</MudButton>
+                <MudButton Href="/jobs" Style="color:white">Browse Jobs</MudButton>
+                <MudButton Href="/companies" Style="color:white">Browse Companies</MudButton>
+                <MudButton Href="/applications" Style="color:white">Applications</MudButton>
+            </div>
         </MudHidden>
         <MudSpacer />
         <MudIconButton Icon="@Icons.Custom.Brands.Facebook" Style="color:white" />
