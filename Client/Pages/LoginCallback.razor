@@ -1,0 +1,24 @@
+﻿ @page "/login-callback"
+ @page "/logout"
+@using job_board.Utilities
+@using Microsoft.AspNetCore.WebUtilities
+ @inject TokenAuthStateProvider TokenAuthStateProvider
+ @inject NavigationManager Navigation
+
+@code {
+    [Parameter] public string Token { get; set; } = string.Empty;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            var uri = Navigation.ToAbsoluteUri(Navigation.Uri);
+            QueryHelpers.ParseQuery(uri.Query).TryGetValue("token", out var token);
+            string tokenString = token.ToString();
+            // During prerendering, do not notify the authentication state change
+            await TokenAuthStateProvider.SetTokenAsync(tokenString ?? string.Empty, !firstRender);
+
+            Navigation.NavigateTo("/");
+        }
+    }
+}

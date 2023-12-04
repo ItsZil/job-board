@@ -1,0 +1,116 @@
+﻿@using MudBlazor
+@using job_board.Models;
+@using job_board.Utilities;
+
+@inject NavigationManager Navigate
+@inject IHttpClientFactory ClientFactory
+@inject IDialogService DialogService
+@inject TokenAuthStateProvider TokenAuthStateProvider
+
+<MudDialog>
+    <DialogContent>
+        <MudText>@Ad.Description</MudText>
+        <br />
+        <MudDivider />
+        <br />
+        <MudGrid>
+            <MudItem xs="12" sm="6">
+                <MudText Typo="Typo.h6">Contact</MudText>
+                <MudText Typo="Typo.subtitle1">@Ad.Company.CompanyName</MudText>
+                <MudText Style="word-break: break-all;" Typo="Typo.subtitle1">@Ad.Company.Email</MudText>
+                <MudLink Href="@Ad.Company.Website">Open Website</MudLink>
+             </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudText Typo="Typo.h6">Salary</MudText>
+                <MudText Typo="Typo.subtitle1" Style="@($"color:{Colors.Green.Darken3};")">€@Ad.SalaryFrom - €@Ad.SalaryTo</MudText>
+                <MudText Typo="Typo.h6">Location</MudText>
+                <MudText Typo="Typo.subtitle1">@Ad.Location</MudText>
+            </MudItem>
+        </MudGrid>
+        <br />
+        @if (_error)
+        {
+            <MudAlert Severity="Severity.Error" IsOpen="true" Class="pt-4 pb-4">@_errorText</MudAlert>
+        }
+    </DialogContent>
+    <DialogActions>
+        @if (IsAdOwner)
+        {
+            <MudButton Color="Color.Error" OnClick="Delete">Delete</MudButton>
+            <MudButton Color="Color.Info" OnClick="Update">Update</MudButton>
+        }
+        else
+        {
+            <MudButton Color="Color.Primary" OnClick="Apply">Apply</MudButton>
+        }
+        <MudButton OnClick="Close">Close</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+    [Parameter] public Ad Ad { get; set; }
+    [Parameter] public bool LoggedIn { get; set; }
+    [Parameter] public bool IsCandidate { get; set; }
+    [Parameter] public bool IsAdOwner { get; set; }
+    [Parameter] public int UserId { get; set; }
+
+    bool _error = false;
+    string _errorText = "You must be logged in as a candidate to apply for a job.";
+
+    HttpClient client;
+    bool _settingToken = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        client = ClientFactory.CreateClient("httpClient");
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender && client.DefaultRequestHeaders.Authorization == null)
+        {
+            var token = await TokenAuthStateProvider.GetTokenRawAsync();
+            client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+            _settingToken = false;
+        }
+    }
+
+    void Apply()
+    {
+        if (!LoggedIn || !IsCandidate)
+        {
+            _error = true;
+            return;
+        }
+        Navigate.NavigateTo($"/apply/{Ad.Company.Id}/{Ad.Id}");
+    }
+
+    async void Delete()
+    {
+        while (_settingToken)
+        {
+            await Task.Delay(100);
+        }
+
+        var response = client.DeleteAsync($"api/companies/{UserId}/ads/{Ad.Id}").Result;
+        if (response.StatusCode == System.Net.HttpStatusCode.NoContent)
+        {
+            Close();
+            await DialogService.ShowMessageBox("Success", "Job ad deleted successfully.");
+            Navigate.NavigateTo("/jobs", true, false);
+        }
+        else
+        {
+            _error = true;
+            _errorText = "An error occurred while deleting job.";
+        }
+    }
+
+    void Update()
+    {
+        Navigate.NavigateTo($"/update-job/{Ad.Id}");
+    }
+
+    void Close() => MudDialog.Cancel();
+}

@@ -1,0 +1,174 @@
+﻿@page "/Apply/{companyId:int}/{adId:int}"
+@using System.Text.Json;
+@using Microsoft.AspNetCore.Components.Authorization
+@using job_board.Client.Dialogs
+@using job_board.Utilities
+@using job_board.Models;
+@using job_board.ViewModels.Candidate
+@using job_board.ViewModels.Application
+
+@inject NavigationManager Navigate
+@inject TokenAuthStateProvider TokenAuthStateProvider
+@inject IHttpClientFactory ClientFactory
+@inject IDialogService DialogService
+
+<PageTitle>New Application</PageTitle>
+
+<MudContainer Class="mt-16 px-8">
+    <MudGrid>
+        <MudItem xs="12" sm="12" md="12" lg="10" xl="8" Class="mx-auto">
+            <MudPaper Elevation="2" Class="pa-4 my-2" Style="max-height: 90vh; overflow: auto;" MaxHeight="1000px">
+            @if (_loading)
+            {
+                <MudContainer Class="d-flex flex-column justify-content-center align-items-center">
+                    <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" Class="mx-auto" />
+                </MudContainer>
+            }
+            else if (_adNotFound && !_loading)
+            {
+                <MudText Typo="Typo.h5">Ad not found.</MudText>
+            }
+            else
+            {
+                <MudText Typo="Typo.h5" Class="pa-4">New Application</MudText>
+
+                <!-- Ad Information -->
+                <div class="pt-4 pl-4">
+                    <MudText Typo="Typo.h6">@_ad.Title</MudText>
+                    <MudText>@_ad.Company.CompanyName | @_ad.Location</MudText>
+                    <MudSpacer />
+                    <MudText Typo="Typo.subtitle2" Style="@($"color:{Colors.Green.Darken4};")">€@_ad.SalaryFrom - €@_ad.SalaryTo</MudText>
+                    <br />
+                    <MudDivider />
+                </div>
+
+                <!-- Cover Letter Textbox -->
+                <MudTextField T="string" Lines="10" Counter="1000" MaxLength="1000" Variant="Variant.Outlined" Validation="@(new Func<string, IEnumerable<string>>(MaxCharacters))" Immediate="true" Placeholder="Cover letter (optional)" @bind-Value="_coverLetter" Class="mt-4" />
+
+                <!-- Submit Button -->
+                <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="@SubmitApplication" Class="mt-4" FullWidth="true">Submit Application</MudButton>
+            }
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+</MudContainer>
+
+@code {
+    bool _loggedIn = false;
+    bool _loggingIn = true;
+    int _userId;
+    string _userRole;
+
+    bool _isCompany = false;
+    bool _isCandidate = false;
+    bool _isAdmin = false;
+
+    [Parameter] public int companyId { get; set; }
+    [Parameter] public int adId { get; set; }
+    bool _loading = true;
+    bool _adNotFound = false;
+
+    Ad _ad;
+    string _coverLetter = String.Empty;
+
+    HttpClient client;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await TokenAuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        _loggedIn = authState.User.Identity.IsAuthenticated;
+        client = ClientFactory.CreateClient("httpClient");
+
+        if (_loggedIn)
+        {
+            _userId = int.Parse(user.FindFirst("nameid")?.Value ?? "-1");
+            _userRole = user.FindFirst("role")?.Value ?? "candidate";
+
+            if (_userRole == "company")
+            {
+                _isCompany = true;
+            }
+            else if (_userRole == "candidate")
+            {
+                _isCandidate = true;
+            }
+            else if (_userRole == "admin")
+            {
+                _isCompany = true;
+                _isCandidate = true;
+                _isAdmin = true;
+            }
+        }
+        else
+        {
+            await DialogService.ShowMessageBox("Error", "You must be logged in as a candidate to apply for a job.");
+            Navigate.NavigateTo("/login");
+            return;
+        }
+        _loggingIn = false;
+
+        // Retrieve ad
+        var response = await client.GetAsync($"api/companies/{companyId}/ads/{adId}");
+        if (response == null || response.StatusCode != System.Net.HttpStatusCode.OK)
+        {
+            _adNotFound = true;
+            await DialogService.ShowMessageBox("Error", "A job with the specified company or ID was not found.");
+            Navigate.NavigateTo("/jobs");
+        }
+        else
+        {
+            _ad = await response.Content.ReadFromJsonAsync<Ad>();
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender && client.DefaultRequestHeaders.Authorization == null)
+        {
+            var token = await TokenAuthStateProvider.GetTokenRawAsync();
+            client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+            // Check if this user has already applied for this job
+            if (!_adNotFound && _ad != null && _loggedIn)
+            {
+                var applications = await client.GetFromJsonAsync<List<ApplicationResponseVM>>($"api/companies/{companyId}/ads/{adId}/applications");
+                if (applications != null && applications.Count > 0)
+                {
+                    await DialogService.ShowMessageBox("Error", "You have already applied for this job.");
+                    Navigate.NavigateTo("/applications");
+                }
+                _loading = false;
+            }
+            StateHasChanged();
+        }
+    }
+
+    private async Task SubmitApplication()
+    {
+        try
+        {
+            var response = await client.PostAsJsonAsync($"api/companies/{companyId}/ads/{adId}/applications", new { CoverLetter = _coverLetter });
+
+            if (!response.IsSuccessStatusCode)
+            {
+                await DialogService.ShowMessageBox("Error", response.StatusCode == System.Net.HttpStatusCode.Unauthorized ? "An error occurred while applying. Are you logged in as a candidate?" : "An error occurred while applying.");
+            }
+            else
+            {
+                 await DialogService.ShowMessageBox("Success", "You have successfully applied for this job.");
+                 Navigate.NavigateTo("/applications");
+            }
+        }
+         catch (Exception ex)
+         {
+             await DialogService.ShowMessageBox("Error", $"An error occurred: {ex.Message}");
+         }
+     }
+
+    private IEnumerable<string> MaxCharacters(string ch)
+    {
+        if (!string.IsNullOrEmpty(ch) && 1000 < ch?.Length)
+            yield return "Max 1000 characters";
+    }
+}

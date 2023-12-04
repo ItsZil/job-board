@@ -1,0 +1,170 @@
+﻿@page "/create-job"
+@using System.Text.Json;
+@using Microsoft.AspNetCore.Components.Authorization
+@using job_board.Client.Dialogs
+@using job_board.Utilities
+@using job_board.Models;
+@using job_board.ViewModels.Ad
+
+@inject NavigationManager Navigate
+@inject TokenAuthStateProvider TokenAuthStateProvider
+@inject IHttpClientFactory ClientFactory
+@inject IDialogService DialogService
+
+<PageTitle>New Job Ad</PageTitle>
+
+<MudContainer Class="mt-16 px-8">
+    <MudGrid>
+        <MudItem xs="12" sm="12" md="12" lg="10" xl="8" Class="mx-auto">
+            <MudPaper Elevation="2" Class="pa-4 my-2">
+            @if (_loading)
+            {
+                <MudContainer Class="d-flex flex-column justify-content-center align-items-center">
+                    <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" Class="mx-auto" />
+                </MudContainer>
+            }
+            else
+            {
+                <MudText Typo="Typo.h5" Class="pa-4">New Ad</MudText>
+                <EditForm Model="@_adCreateVM" OnValidSubmit="@SubmitAd" OnInvalidSubmit="@InvalidSubmit">
+                    <DataAnnotationsValidator />
+                    <MudTextField T="string" Label="Title" Variant="Variant.Outlined" Counter="75" MaxLength="75" Immediate="true" Validation="@(new Func<string, IEnumerable<string>>(MaxTitleCharacters))" @bind-Value="@_adCreateVM.Title" Required="true" FullWidth="true" />
+                    <MudTextField T="string" Counter="3000" MaxLength="3000" Variant="Variant.Outlined" Validation="@(new Func<string, IEnumerable<string>>(MaxCharacters))" Immediate="true" 
+                        Placeholder="Description (required)" @bind-Value="@_adCreateVM.Description" FullWidth="true" Lines="15" Required="true" Class="mt-6" />
+
+                    <MudTextField T="string" Label="Salary From" Class="mt-4" Variant="Variant.Outlined" Counter="10" MaxLength="10" Immediate="true" Validation="@(new Func<string, IEnumerable<string>>(MaxSalaryCharacters))" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Euro" @bind-Value="@_adCreateVM.SalaryFrom" Required="true" FullWidth="true" InputType="InputType.Number" />
+                    <MudTextField T="string" Label="Salary To" Class="mt-6" Variant="Variant.Outlined" Counter="10" MaxLength="10" Immediate="true" Validation="@(new Func<string, IEnumerable<string>>(MaxSalaryCharacters))" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Euro" @bind-Value="@_adCreateVM.SalaryTo" Required="true" FullWidth="true" InputType="InputType.Number" />
+                    <MudTextField T="string" Label="Location" Class="mt-6" Variant="Variant.Outlined"  Counter="100" MaxLength="100" Immediate="true" Validation="@(new Func<string, IEnumerable<string>>(MaxLocationCharacters))" @bind-Value="@_adCreateVM.Location" Required="true" FullWidth="true" />
+                    <MudButton ButtonType="ButtonType.Submit" Color="Color.Primary" Variant="Variant.Filled" Class="mt-6" FullWidth="true">Save</MudButton>
+                </EditForm>
+            }
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+</MudContainer>
+
+@code {
+    bool _loggedIn = false;
+    bool _loggingIn = true;
+    bool _loading = true;
+    int _userId;
+    string _userRole;
+
+    bool _isCompany = false;
+    bool _isCandidate = false;
+    bool _isAdmin = false;
+
+    Company _company;
+    HttpClient client;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await TokenAuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        _loggedIn = authState.User.Identity.IsAuthenticated;
+        client = ClientFactory.CreateClient("httpClient");
+
+        if (_loggedIn)
+        {
+            _userId = int.Parse(user.FindFirst("nameid")?.Value ?? "-1");
+            _userRole = user.FindFirst("role")?.Value ?? "candidate";
+
+            if (_userRole == "company")
+            {
+                _isCompany = true;
+            }
+            else if (_userRole == "candidate")
+            {
+                _isCandidate = true;
+            }
+            else if (_userRole == "admin")
+            {
+                _isCompany = true;
+                _isCandidate = true;
+                _isAdmin = true;
+            }
+        }
+        else
+        {
+            await DialogService.ShowMessageBox("Error", "You must be logged in as a company to create a new job.");
+            Navigate.NavigateTo("/");
+            return;
+        }
+        _loggingIn = false;
+
+        // Retrieve company
+        var response = await client.GetAsync($"api/companies/{_userId}/");
+        if (response == null || response.StatusCode != System.Net.HttpStatusCode.OK)
+        {
+            await DialogService.ShowMessageBox("Error", "Failed to retrieve company information. Are you logged in as a company?");
+            Navigate.NavigateTo("/");
+        }
+        else
+        {
+            _company = await response.Content.ReadFromJsonAsync<Company>();
+        }
+        _loading = false;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender && client.DefaultRequestHeaders.Authorization == null)
+        {
+            var token = await TokenAuthStateProvider.GetTokenRawAsync();
+            client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+        }
+    }
+
+    private AdCreateVM _adCreateVM = new AdCreateVM();
+
+    private async Task SubmitAd()
+    {
+        try
+        {
+            var response = await client.PostAsJsonAsync($"api/companies/{_userId}/ads/", _adCreateVM);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                await DialogService.ShowMessageBox("Error", "An error occurred while saving ad.");
+            }
+            else
+            {
+                await DialogService.ShowMessageBox("Success", "You have successfully created a new job ad.");
+                Navigate.NavigateTo("/jobs");
+            }
+        }
+        catch (Exception ex)
+        {
+            await DialogService.ShowMessageBox("Error", $"An error occurred: {ex.Message}");
+        }
+    }
+
+    private async Task InvalidSubmit()
+    {
+        await DialogService.ShowMessageBox("Error", "Please correct any missing fields before saving the ad.");
+    }
+
+    private IEnumerable<string> MaxTitleCharacters(string ch)
+    {
+        if (!string.IsNullOrEmpty(ch) && 75 < ch?.Length)
+            yield return "Max 75 characters";
+    }
+
+    private IEnumerable<string> MaxCharacters(string ch)
+    {
+        if (!string.IsNullOrEmpty(ch) && 3000 < ch?.Length)
+            yield return "Max 3000 characters";
+    }
+
+    private IEnumerable<string> MaxSalaryCharacters(string ch)
+    {
+        if (!string.IsNullOrEmpty(ch) && 10 < ch?.Length)
+            yield return "Max 10 characters";
+    }
+
+    private IEnumerable<string> MaxLocationCharacters(string ch)
+    {
+        if (!string.IsNullOrEmpty(ch) && 100 < ch?.Length)
+            yield return "Max 100 characters";
+    }
+}
