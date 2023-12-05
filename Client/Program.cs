@@ -18,7 +18,15 @@ internal class Program
         builder.Services.AddScoped<TokenAuthStateProvider>();
         builder.Services.AddScoped<AuthenticationStateProvider>(provider => provider.GetRequiredService<TokenAuthStateProvider>());
 
-        builder.Configuration.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+        /*if (!builder.Environment.IsDevelopment())
+        {
+            builder.Configuration.AddJsonFile("appsettings.Development.json", optional: true, reloadOnChange: true);
+        }
+        else
+        {
+            builder.Configuration.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+        }*/
+        builder.Configuration.AddJsonFile("appsettings.Development.json", optional: true, reloadOnChange: true);
 
         var baseAddress = builder.Configuration["Base_Address"];
         builder.Services.AddHttpClient("httpClient", client =>
