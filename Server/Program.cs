@@ -1,6 +1,7 @@
 using job_board.Utilities;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting;
@@ -32,7 +33,7 @@ internal class Program
         var baseAddress = builder.Configuration["Base_Address"];
         builder.Services.AddHttpClient("httpClient", client =>
         {
-            client.BaseAddress = new Uri(baseAddress);
+            client.BaseAddress = new Uri("https://darbai.azurewebsites.net");
         });
 
         var connection = builder.Configuration.GetConnectionString("AZURE_SQL_CONNECTIONSTRING");
@@ -87,6 +88,7 @@ internal class Program
 
         app.MapRazorPages();
         app.MapControllers();
+        
         app.MapFallbackToFile("index.html");
 
         app.Run();

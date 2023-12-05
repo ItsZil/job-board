@@ -24,7 +24,7 @@ internal class Program
         var baseAddress = builder.Configuration["Base_Address"];
         builder.Services.AddHttpClient("httpClient", client =>
         {
-            client.BaseAddress = new Uri(baseAddress);
+            client.BaseAddress = new Uri("https://darbai.azurewebsites.net");
         });
 
         builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>().CreateClient("httpClient"));
