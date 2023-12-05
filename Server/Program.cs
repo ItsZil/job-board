@@ -3,8 +3,10 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using MudBlazor.Services;
+using System;
 using System.Text;
 
 internal class Program
@@ -22,15 +24,10 @@ internal class Program
         builder.Services.AddScoped<TokenAuthStateProvider>();
         builder.Services.AddScoped<AuthenticationStateProvider>(provider => provider.GetRequiredService<TokenAuthStateProvider>());
 
-        /*if (!builder.Environment.IsDevelopment())
-        {
-            builder.Configuration.AddJsonFile("appsettings.Development.json", optional: true, reloadOnChange: true);
-        }
-        else
-        {
-            builder.Configuration.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
-        }*/
-        builder.Configuration.AddJsonFile("appsettings.Development.json", optional: true, reloadOnChange: true);
+        builder.Configuration.SetBasePath(builder.Environment.ContentRootPath)
+            .AddJsonFile("appsettings.Development.json", optional: true, reloadOnChange: true)
+            .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true)
+            .AddEnvironmentVariables();
 
         var baseAddress = builder.Configuration["Base_Address"];
         builder.Services.AddHttpClient("httpClient", client =>
