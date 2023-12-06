@@ -56,7 +56,7 @@ Sistema sudaryta iš dvejų dalių:
   
 Žemiau pateiktame paveikslėlyje pavaizduota sistemos diegimo diagrama. Naudotojas, pasileidęs naršyklę, galės HTTPS protokolu pasiekti sistemą talpinamą Azure serveryje. Sistemos veikimui naudojamas API, kuris vykdo duomenų mainus su duomenų bazę per ORM.
 
-![Diegimo diagrama](https://i.imgur.com/REsw9iY.png)
+![Diegimo diagrama](https://i.imgur.com/qUrnJaA.png)
 
 # 3. Sistemos implementacija
 
