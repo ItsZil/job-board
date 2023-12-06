@@ -93,7 +93,7 @@
             await Task.Delay(100);
         }
 
-        var response = client.DeleteAsync($"api/companies/{UserId}/ads/{Ad.Id}").Result;
+        var response = await client.DeleteAsync($"api/companies/{UserId}/ads/{Ad.Id}");
         if (response.StatusCode == System.Net.HttpStatusCode.NoContent)
         {
             Close();
