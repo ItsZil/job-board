@@ -237,6 +237,26 @@ Atsakymas (200 OK):
 }
 ```
 
+Atsakymas (400 Bad Request):
+```
+{
+    "type": "https://tools.ietf.org/html/rfc7231#section-6.5.1",
+    "title": "One or more validation errors occurred.",
+    "status": 400,
+    "traceId": "00-3fb7bcca95d71386ae51d80f3aa11f5e-c984564a6bdc0361-00",
+    "errors": {
+        "companyId": [
+            "The value 'x' is not valid."
+        ]
+    }
+}
+```
+
+Atsakymas (404 Not Found):
+```
+Company not found.
+```
+
 ***
 
 | URL           | Metodas | Autentifikacija | Užklausos formatas | Atsakymo formatas | Atsako kodai |
@@ -268,6 +288,25 @@ Atsakymas (201 Created):
 }
 ```
 
+Atsakymas (400 Bad Request):
+```
+{
+    "type": "https://tools.ietf.org/html/rfc7231#section-6.5.1",
+    "title": "One or more validation errors occurred.",
+    "status": 400,
+    "traceId": "00-757141b60003e3944f61d9d82675b53b-e8df1408d658b403-00",
+    "errors": {
+        "Password": [
+            "The Password field is required."
+        ]
+    }
+}
+```
+
+Atsakymas: 401 Unauthorized
+
+Atsakymas: 403 Forbidden
+
 ***
 
 | URL           | Metodas | Autentifikacija | Užklausos formatas | Atsakymo formatas | Atsako kodai |
@@ -297,6 +336,30 @@ Atsakymas (200 OK):
 }
 ```
 
+Atsakymas (400 Bad Request):
+```
+{
+    "type": "https://tools.ietf.org/html/rfc7231#section-6.5.1",
+    "title": "One or more validation errors occurred.",
+    "status": 400,
+    "traceId": "00-9323dcb4ed38b255b7de19a448e0db0b-111d1914d90dc2ca-00",
+    "errors": {
+        "CompanyDescription": [
+            "The CompanyDescription field is required."
+        ]
+    }
+}
+```
+
+Atsakymas: 401 Unauthorized
+
+Atsakymas: 403 Forbidden
+
+Atsakymas (404 Not Found):
+```
+Company not found.
+```
+
 ***
 
 | URL           | Metodas | Autentifikacija | Užklausos formatas | Atsakymo formatas | Atsako kodai |
@@ -308,6 +371,30 @@ Ištrina įmonę, kurios ID yra companyId.
 Užklausa: DELETE api/companies/17
 
 Atsakymas: 204 No Content
+
+Atsakymas (400 Bad Request):
+```
+{
+    "type": "https://tools.ietf.org/html/rfc7231#section-6.5.1",
+    "title": "One or more validation errors occurred.",
+    "status": 400,
+    "traceId": "00-0999768ce7d3d6552e100a802e9348d2-618f63fafe8b1273-00",
+    "errors": {
+        "companyId": [
+            "The value 'x' is not valid."
+        ]
+    }
+}
+```
+
+Atsakymas: 401 Unauthorized
+
+Atsakymas: 403 Forbidden
+
+Atsakymas (404 Not Found):
+```
+Company not found.
+```
 
 ## 5.2 AdController
 
@@ -340,6 +427,26 @@ Atsakymas (200 OK):
         }
     }
 ]
+```
+
+Atsakymas (400 Bad Request):
+```
+{
+    "type": "https://tools.ietf.org/html/rfc7231#section-6.5.1",
+    "title": "One or more validation errors occurred.",
+    "status": 400,
+    "traceId": "00-7a62ac8a6c25afeb9ecd58378624580a-86a3745a8a6d650b-00",
+    "errors": {
+        "companyId": [
+            "The value 'x' is not valid."
+        ]
+    }
+}
+```
+
+Atsakymas (404 Not Found):
+```
+Company not found.
 ```
 
 ***
@@ -375,6 +482,26 @@ Atsakymas (200 OK):
 ]
 ```
 
+Atsakymas (400 Bad Request):
+```
+{
+    "type": "https://tools.ietf.org/html/rfc7231#section-6.5.1",
+    "title": "One or more validation errors occurred.",
+    "status": 400,
+    "traceId": "00-7a62ac8a6c25afeb9ecd58378624580a-86a3745a8a6d650b-00",
+    "errors": {
+        "companyId": [
+            "The value 'x' is not valid."
+        ]
+    }
+}
+```
+
+Atsakymas (404 Not Found):
+```
+Ad not found.
+```
+
 ***
 
 | URL           | Metodas | Autentifikacija | Užklausos formatas | Atsakymo formatas | Atsako kodai |
@@ -405,6 +532,30 @@ Atsakymas (201 Created):
     "location": "Kaunas",
     "postedDate": "2023-12-02T19:19:36.238157+00:00"
 }
+```
+
+Atsakymas (400 Bad Request):
+```
+{
+    "type": "https://tools.ietf.org/html/rfc7231#section-6.5.1",
+    "title": "One or more validation errors occurred.",
+    "status": 400,
+    "traceId": "00-7a62ac8a6c25afeb9ecd58378624580a-86a3745a8a6d650b-00",
+    "errors": {
+        "companyId": [
+            "The value 'x' is not valid."
+        ]
+    }
+}
+```
+
+Atsakymas: 401 Unauthorized
+
+Atsakymas: 403 Forbidden
+
+Atsakymas (404 Not Found):
+```
+Company not found.
 ```
 
 ***
@@ -439,6 +590,30 @@ Atsakymas (200 OK):
 }
 ```
 
+Atsakymas (400 Bad Request):
+```
+{
+    "type": "https://tools.ietf.org/html/rfc7231#section-6.5.1",
+    "title": "One or more validation errors occurred.",
+    "status": 400,
+    "traceId": "00-7a62ac8a6c25afeb9ecd58378624580a-86a3745a8a6d650b-00",
+    "errors": {
+        "companyId": [
+            "The value 'x' is not valid."
+        ]
+    }
+}
+```
+
+Atsakymas: 401 Unauthorized
+
+Atsakymas: 403 Forbidden
+
+Atsakymas (404 Not Found):
+```
+Company not found.
+```
+
 ***
 
 | URL           | Metodas | Autentifikacija | Užklausos formatas | Atsakymo formatas | Atsako kodai |
@@ -450,6 +625,30 @@ Ištrina skelbimą, kurio ID yra adId, priklausančią įmonei, kurios ID yra co
 Užklausa: DELETE api/companies/1/ads/35
 
 Atsakymas: 204 No Content
+
+Atsakymas (400 Bad Request):
+```
+{
+    "type": "https://tools.ietf.org/html/rfc7231#section-6.5.1",
+    "title": "One or more validation errors occurred.",
+    "status": 400,
+    "traceId": "00-7a62ac8a6c25afeb9ecd58378624580a-86a3745a8a6d650b-00",
+    "errors": {
+        "companyId": [
+            "The value 'x' is not valid."
+        ]
+    }
+}
+```
+
+Atsakymas: 401 Unauthorized
+
+Atsakymas: 403 Forbidden
+
+Atsakymas (404 Not Found):
+```
+Company not found.
+```
 
 ## 5.3 ApplicationController
 
@@ -481,6 +680,26 @@ Atsakymas (200 OK):
 ]
 ```
 
+Atsakymas (400 Bad Request):
+```
+{
+    "type": "https://tools.ietf.org/html/rfc7231#section-6.5.1",
+    "title": "One or more validation errors occurred.",
+    "status": 400,
+    "traceId": "00-7a62ac8a6c25afeb9ecd58378624580a-86a3745a8a6d650b-00",
+    "errors": {
+        "companyId": [
+            "The value 'x' is not valid."
+        ]
+    }
+}
+```
+
+Atsakymas (404 Not Found):
+```
+Company not found.
+```
+
 ***
 
 | URL           | Metodas | Autentifikacija | Užklausos formatas | Atsakymo formatas | Atsako kodai |
@@ -498,6 +717,26 @@ Atsakymas (200 OK):
     "applicationDate": "2023-09-29T22:12:45.393",
     "coverLetter": "Test cover letter"
 }
+```
+
+Atsakymas (400 Bad Request):
+```
+{
+    "type": "https://tools.ietf.org/html/rfc7231#section-6.5.1",
+    "title": "One or more validation errors occurred.",
+    "status": 400,
+    "traceId": "00-7a62ac8a6c25afeb9ecd58378624580a-86a3745a8a6d650b-00",
+    "errors": {
+        "companyId": [
+            "The value 'x' is not valid."
+        ]
+    }
+}
+```
+
+Atsakymas (404 Not Found):
+```
+Application not found.
 ```
 
 ***
@@ -524,6 +763,26 @@ Atsakymas (201 Created):
 }
 ```
 
+Atsakymas (400 Bad Request):
+```
+{
+    "type": "https://tools.ietf.org/html/rfc7231#section-6.5.1",
+    "title": "One or more validation errors occurred.",
+    "status": 400,
+    "traceId": "00-7a62ac8a6c25afeb9ecd58378624580a-86a3745a8a6d650b-00",
+    "errors": {
+        "companyId": [
+            "The value 'x' is not valid."
+        ]
+    }
+}
+```
+
+Atsakymas (404 Not Found):
+```
+Ad not found.
+```
+
 ***
 
 | URL           | Metodas | Autentifikacija | Užklausos formatas | Atsakymo formatas | Atsako kodai |
@@ -548,6 +807,26 @@ Atsakymas (200 OK):
 }
 ```
 
+Atsakymas (400 Bad Request):
+```
+{
+    "type": "https://tools.ietf.org/html/rfc7231#section-6.5.1",
+    "title": "One or more validation errors occurred.",
+    "status": 400,
+    "traceId": "00-7a62ac8a6c25afeb9ecd58378624580a-86a3745a8a6d650b-00",
+    "errors": {
+        "companyId": [
+            "The value 'x' is not valid."
+        ]
+    }
+}
+```
+
+Atsakymas (404 Not Found):
+```
+Application not found.
+```
+
 ***
 
 | URL           | Metodas | Autentifikacija | Užklausos formatas | Atsakymo formatas | Atsako kodai |
@@ -559,6 +838,27 @@ Ištrina kandidatūrą, kurios ID yra appId, priklausančią skelbimui, kurio ID
 Užklausa: DELETE api/companies/1/ads/11/applications/31
 
 Atsakymas: 204 No Content
+
+Atsakymas (400 Bad Request):
+```
+{
+    "type": "https://tools.ietf.org/html/rfc7231#section-6.5.1",
+    "title": "One or more validation errors occurred.",
+    "status": 400,
+    "traceId": "00-7a62ac8a6c25afeb9ecd58378624580a-86a3745a8a6d650b-00",
+    "errors": {
+        "companyId": [
+            "The value 'x' is not valid."
+        ]
+    }
+}
+```
+
+Atsakymas (404 Not Found):
+```
+Application not found.
+```
+
 
 # 6. Išvados
 
